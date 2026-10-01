@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f766e">
+<title>FNF Computer & Online Services</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --primary:#0f766e;
+  --primary-dark:#115e59;
+  --bg:#f1f5f9;
+  --card:#fff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#dbe2ea;
+  --danger:#dc2626;
+  --success:#15803d;
+}
+body{
+  margin:0;
+  font-family:Arial,"Noto Sans Bengali",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:linear-gradient(135deg,#115e59,#0f766e);
+  color:#fff;
+  padding:18px 16px;
+  text-align:center;
+  box-shadow:0 2px 10px #0001;
+}
+header h1{margin:0;font-size:22px}
+header p{margin:5px 0 0;font-size:13px;color:#d1fae5}
+.container{max-width:1100px;margin:auto;padding:12px}
+nav{
+  display:flex;gap:7px;overflow-x:auto;
+  background:#fff;padding:8px;border-radius:10px;
+  box-shadow:0 1px 5px #0001;margin-bottom:12px;
+}
+nav button{
+  flex:1;min-width:105px;border:0;border-radius:7px;
+  padding:11px 9px;background:#e2e8f0;color:#334155;
+  cursor:pointer;font-size:14px;white-space:nowrap;
+}
+nav button.active{background:var(--primary);color:#fff}
+.page{display:none}
+.page.active{display:block}
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:12px;
+  box-shadow:0 2px 8px #00000008;
+}
+.card h2{font-size:19px;margin:0 0 15px}
+.grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.grid-4{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+label{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
+input,select,textarea{
+  width:100%;padding:11px;border:1px solid #cbd5e1;
+  border-radius:7px;background:#fff;font-size:15px;
+  outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+textarea{min-height:80px;resize:vertical}
+.full{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{
+  border:0;border-radius:7px;padding:10px 14px;
+  cursor:pointer;font-size:14px;
+}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-light{background:#e2e8f0;color:#334155}
+.btn-success{background:var(--success);color:#fff}
+.type-switch{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px;
+}
+.type-switch button{background:#e2e8f0;color:#334155}
+.type-switch button.active-income{background:#15803d;color:#fff}
+.type-switch button.active-expense{background:#dc2626;color:#fff}
+.notice{
+  background:#ecfeff;border:1px solid #a5f3fc;color:#155e75;
+  padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;
+}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:750px}
+th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
+th{background:#f8fafc}
+.amount-income{color:var(--success);font-weight:700}
+.amount-expense{color:var(--danger);font-weight:700}
+.empty{text-align:center;color:var(--muted);padding:25px}
+.list-item{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:10px 0;border-bottom:1px solid #e2e8f0;
+}
+.list-item:last-child{border-bottom:0}
+.list-name{font-weight:600}
+.muted{color:var(--muted);font-size:12px}
+.setting-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+}
+.setting-box{
+  border:1px solid var(--border);border-radius:10px;padding:13px;
+}
+.setting-box h3{margin:0 0 10px;font-size:16px}
+.add-row{display:flex;gap:7px}
+.add-row input{flex:1}
+.report-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
+}
+.summary-box{border-radius:9px;padding:13px;color:#fff}
+.summary-box small{display:block;opacity:.9;margin-bottom:4px}
+.summary-box strong{font-size:19px}
+.income-bg{background:#15803d}
+.expense-bg{background:#dc2626}
+.balance-bg{background:#2563eb}
+
+.breakdown-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;
+}
+.breakdown-card{
+  background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;
+}
+.breakdown-card h4{margin:0 0 8px;font-size:15px;color:var(--primary-dark)}
+.breakdown-list{list-style:none;padding:0;margin:0;font-size:13px}
+.breakdown-list li{display:flex;justify-space-between;padding:4px 0;border-bottom:1px dashed #cbd5e1}
+.breakdown-list li:last-child{border-bottom:0}
+
+footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
+@media(max-width:700px){
+  .grid,.grid-4,.setting-grid,.report-summary,.breakdown-grid{grid-template-columns:1fr}
+  header h1{font-size:19px}
+  .container{padding:8px}
+  nav button{min-width:95px}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>FNF Computer & Online Services</h1>
+  <p>Banglabazar Road, Barishal.</p>
+</header>
+
+<div class="container">
+  <nav>
+    <button class="tab active" data-page="home">হোম</button>
+    <button class="tab" data-page="report">রিপোর্ট</button>
+    <button class="tab" data-page="settings">সেটিংস</button>
+  </nav>
+
+  <!-- HOME: INPUT ONLY -->
+  <section id="home" class="page active">
+    <div class="card">
+      <h2>হিসাব যোগ করুন</h2>
+
+      <div class="type-switch">
+        <button id="incomeMode" class="active-income" type="button">➕ আয় যোগ করুন</button>
+        <button id="expenseMode" type="button">➖ সাধারণ ব্যয় (দোকান)</button>
+      </div>
+
+      <form id="transactionForm">
+        <div class="grid">
+          <div>
+            <label>তারিখ</label>
+            <input type="date" id="date" required>
+          </div>
+
+          <div>
+            <label>স্টাফ</label>
+            <select id="staff" required></select>
+          </div>
+
+          <div>
+            <label id="typeLabel">আয়ের ধরন</label>
+            <select id="transactionType" required></select>
+          </div>
+
+          <div id="incomeAmountBlock">
+            <label id="amountLabel">কাজের মোট বিল (আয়)</label>
+            <input type="number" id="amount" min="0" step="0.01" placeholder="যেমন: 500" required>
+          </div>
+
+          <div id="jobCostBlock">
+            <label>কাজের খরচ (যদি থাকে)</label>
+            <input type="number" id="jobCost" min="0" step="0.01" placeholder="যেমন: 100 (কাগজ/ফি/অন্যান্য)">
+          </div>
+
+          <div class="full">
+            <label>বিবরণ / কাজের নাম</label>
+            <textarea id="details" placeholder="প্রয়োজনে কাজ বা লেনদেনের বিবরণ লিখুন"></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" type="submit" id="saveBtn">আয় সংরক্ষণ করুন</button>
+          <button class="btn-light" type="reset">ফর্ম পরিষ্কার</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- REPORT -->
+  <section id="report" class="page">
+    <div class="card">
+      <h2>আয়-ব্যয় ফিল্টার ও রিপোর্ট</h2>
+
+      <div class="grid-4">
+        <div>
+          <label>শুরু তারিখ</label>
+          <input type="date" id="fromDate">
+        </div>
+        <div>
+          <label>শেষ তারিখ</label>
+          <input type="date" id="toDate">
+        </div>
+        <div>
+          <label>ফিল্টার: স্টাফ</label>
+          <select id="filterStaff">
+            <option value="">সকল স্টাফ</option>
+          </select>
+        </div>
+        <div>
+          <label>ফিল্টার: ধরন/খাত</label>
+          <select id="filterType">
+            <option value="">সকল খাত/ধরন</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" id="showReport">রিপোর্ট দেখুন</button>
+        <button class="btn-success" id="downloadCsv">CSV ডাউনলোড</button>
+      </div>
+
+      <div class="report-summary">
+        <div class="summary-box income-bg">
+          <small>মোট নিট আয় (Net Revenue)</small>
+          <strong id="totalIncome">৳ 0</strong>
+        </div>
+        <div class="summary-box expense-bg">
+          <small>মোট ব্যয় (সাধারণ + কাজের খরচ)</small>
+          <strong id="totalExpense">৳ 0</strong>
+        </div>
+        <div class="summary-box balance-bg">
+          <small>অবশিষ্ট লাভ (Balance)</small>
+          <strong id="balance">৳ 0</strong>
+        </div>
+      </div>
+
+      <!-- স্টাফ ও খাত ভিত্তিক সামারি -->
+      <div class="breakdown-grid">
+        <div class="breakdown-card">
+          <h4>👤 স্টাফ অনুযায়ী নিট আয়</h4>
+          <ul id="staffBreakdown" class="breakdown-list">
+            <li><span>কোনো তথ্য নেই</span></li>
+          </ul>
+        </div>
+        <div class="breakdown-card">
+          <h4>💸 খাত (ক্যাটাগরি) অনুযায়ী ব্যয়</h4>
+          <ul id="expenseBreakdown" class="breakdown-list">
+            <li><span>কোনো তথ্য নেই</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>তারিখ</th>
+              <th>ধরন</th>
+              <th>স্টাফ</th>
+              <th>ক্যাটাগরি</th>
+              <th>বিবরণ</th>
+              <th>কাজের বিল/খরচ</th>
+              <th>নিট লাভ/পরিমাণ</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody id="reportBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="page">
+    <div class="notice">
+      এখানে স্টাফ, আয় ও ব্যয়ের ধরন যোগ/বাদ দিলে সেগুলো হোম পেজের dropdown-এ ব্যবহার করা যাবে।
+    </div>
+
+    <div class="setting-grid">
+      <div class="setting-box">
+        <h3>স্টাফ</h3>
+        <div class="add-row">
+          <input id="newStaff" placeholder="স্টাফের নাম">
+          <button class="btn-primary" id="addStaff">যোগ</button>
+        </div>
+        <div id="staffList"></div>
+      </div>
+
+      <div class="setting-box">
+        <h3>আয়ের ধরন</h3>
+        <div class="add-row">
+          <input id="newIncomeType" placeholder="যেমন: কম্পিউটার কাজ">
+          <button class="btn-primary" id="addIncomeType">যোগ</button>
+        </div>
+        <div id="incomeTypeList"></div>
+      </div>
+
+      <div class="setting-box">
+        <h3>ব্যয়ের ধরন</h3>
+        <div class="add-row">
+          <input id="newExpenseType" placeholder="যেমন: দোকান ভাড়া">
+          <button class="btn-primary" id="addExpenseType">যোগ</button>
+        </div>
+        <div id="expenseTypeList"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h2>ডেটা</h2>
+      <div class="actions">
+        <button class="btn-danger" id="clearData">সব হিসাব মুছে দিন</button>
+      </div>
+      <p class="muted">এই prototype-এ ডেটা শুধু এই browser/device-এ সংরক্ষিত হবে। Supabase যুক্ত করার পর একই ডেটা সব device থেকে live ব্যবহার করা যাবে।</p>
+    </div>
+  </section>
+</div>
+
+<footer>Developed by @NAZMULSBLOG</footer>
+
+<script>
+const KEY = {
+  transactions: "fnf_transactions_v2",
+  staff: "fnf_staff_v2",
+  incomeTypes: "fnf_income_types_v2",
+  expenseTypes: "fnf_expense_types_v2"
+};
+
+let transactions = JSON.parse(localStorage.getItem(KEY.transactions) || "[]");
+let staff = JSON.parse(localStorage.getItem(KEY.staff) || "[]");
+let incomeTypes = JSON.parse(localStorage.getItem(KEY.incomeTypes) || "[]");
+let expenseTypes = JSON.parse(localStorage.getItem(KEY.expenseTypes) || "[]");
+let mode = "income";
+let currentReport = [];
+
+const $ = id => document.getElementById(id);
+
+function saveAll(){
+  localStorage.setItem(KEY.transactions, JSON.stringify(transactions));
+  localStorage.setItem(KEY.staff, JSON.stringify(staff));
+  localStorage.setItem(KEY.incomeTypes, JSON.stringify(incomeTypes));
+  localStorage.setItem(KEY.expenseTypes, JSON.stringify(expenseTypes));
+}
+
+function today(){
+  const d = new Date();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function money(n){
+  return "৳ " + Number(n || 0).toLocaleString("en-BD", {
+    minimumFractionDigits:0,
+    maximumFractionDigits:2
+  });
+}
+
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+
+function setMode(newMode){
+  mode = newMode;
+  $("incomeMode").className = newMode === "income" ? "active-income" : "";
+  $("expenseMode").className = newMode === "expense" ? "active-expense" : "";
+  $("typeLabel").textContent = newMode === "income" ? "আয়ের ধরন" : "ব্যয়ের ধরন";
+  $("amountLabel").textContent = newMode === "income" ? "কাজের মোট বিল (আয়)" : "ব্যয়ের পরিমাণ";
+  $("saveBtn").textContent = newMode === "income" ? "আয় সংরক্ষণ করুন" : "ব্যয় সংরক্ষণ করুন";
+  $("jobCostBlock").style.display = newMode === "income" ? "block" : "none";
+  populateTypeDropdown();
+}
+
+function populateSelect(select, items, placeholder){
+  select.innerHTML = "";
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = placeholder;
+  select.appendChild(first);
+
+  items.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item;
+    option.textContent = item;
+    select.appendChild(option);
+  });
+}
+
+function loadDropdowns(){
+  populateSelect($("staff"), staff, "স্টাফ নির্বাচন করুন");
+  populateTypeDropdown();
+  
+  // ফিল্টার ড্রপডাউনগুলো আপডেট
+  populateSelect($("filterStaff"), staff, "সকল স্টাফ");
+  const allTypes = Array.from(new Set([...incomeTypes, ...expenseTypes]));
+  populateSelect($("filterType"), allTypes, "সকল খাত/ধরন");
+}
+
+function populateTypeDropdown(){
+  const list = mode === "income" ? incomeTypes : expenseTypes;
+  populateSelect($("transactionType"), list,
+    mode === "income" ? "আয়ের ধরন নির্বাচন করুন" : "ব্যয়ের ধরন নির্বাচন করুন"
+  );
+}
+
+function renderSettings(){
+  renderList("staffList", staff, "staff");
+  renderList("incomeTypeList", incomeTypes, "incomeType");
+  renderList("expenseTypeList", expenseTypes, "expenseType");
+}
+
+function renderList(elementId, items, kind){
+  const box = $(elementId);
+  box.innerHTML = "";
+  if(!items.length){
+    box.innerHTML = '<div class="empty">কোনো তথ্য নেই</div>';
+    return;
+  }
+
+  items.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "list-item";
+    row.innerHTML = `
+      <div>
+        <div class="list-name">${escapeHtml(item)}</div>
+      </div>
+      <button class="btn-danger" type="button" onclick="removeSetting('${kind}', ${index})">বাদ</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+window.removeSetting = function(kind, index){
+  const source = kind === "staff" ? staff : kind === "incomeType" ? incomeTypes : expenseTypes;
+  const name = source[index];
+  if(!confirm(`"${name}" বাদ দিতে চান?`)) return;
+
+  source.splice(index,1);
+  saveAll();
+  renderSettings();
+  loadDropdowns();
+};
+
+function renderReport(){
+  const from = $("fromDate").value;
+  const to = $("toDate").value;
+  const filterStaff = $("filterStaff").value;
+  const filterType = $("filterType").value;
+
+  currentReport = transactions
+    .filter(x => (!from || x.date >= from) && (!to || x.date <= to))
+    .filter(x => !filterStaff || x.staff === filterStaff)
+    .filter(x => !filterType || x.type === filterType)
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  let totalIncome = 0, totalExpense = 0;
+  let staffIncomeMap = {};
+  let expenseCategoryMap = {};
+
+  currentReport.forEach(x => {
+    if(x.kind === "income") {
+      const netIncome = Number(x.amount) - Number(x.jobCost || 0);
+      totalIncome += netIncome;
+      
+      // স্টাফের আয় যোগ
+      staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) + netIncome;
+
+      if(x.jobCost) {
+        totalExpense += Number(x.jobCost);
+        expenseCategoryMap["কাজের খরচ (" + x.type + ")"] = (expenseCategoryMap["কাজের খরচ (" + x.type + ")"] || 0) + Number(x.jobCost);
+      }
+    } else {
+      const expenseVal = Number(x.amount);
+      totalExpense += expenseVal;
+      
+      // ব্যয়ের খাত যোগ
+      expenseCategoryMap[x.type] = (expenseCategoryMap[x.type] || 0) + expenseVal;
+    }
+  });
+
+  $("totalIncome").textContent = money(totalIncome);
+  $("totalExpense").textContent = money(totalExpense);
+  $("balance").textContent = money(totalIncome - totalExpense);
+
+  // স্টাফ আয়ের ব্রেকডাউন রেন্ডার
+  const staffUl = $("staffBreakdown");
+  staffUl.innerHTML = "";
+  if(Object.keys(staffIncomeMap).length === 0){
+    staffUl.innerHTML = "<li><span>কোনো তথ্য নেই</span></li>";
+  } else {
+    for(let s in staffIncomeMap){
+      staffUl.innerHTML += `<li><span>${escapeHtml(s)}</span> <strong>${money(staffIncomeMap[s])}</strong></li>`;
+    }
+  }
+
+  // ব্যয়ের খাতের ব্রেকডাউন রেন্ডার
+  const expUl = $("expenseBreakdown");
+  expUl.innerHTML = "";
+  if(Object.keys(expenseCategoryMap).length === 0){
+    expUl.innerHTML = "<li><span>কোনো তথ্য নেই</span></li>";
+  } else {
+    for(let c in expenseCategoryMap){
+      expUl.innerHTML += `<li><span>${escapeHtml(c)}</span> <strong>${money(expenseCategoryMap[c])}</strong></li>`;
+    }
+  }
+
+  const body = $("reportBody");
+  body.innerHTML = "";
+
+  if(!currentReport.length){
+    body.innerHTML = '<tr><td colspan="8" class="empty">এই সময়ের কোনো হিসাব পাওয়া যায়নি</td></tr>';
+    return;
+  }
+
+  currentReport.forEach(x => {
+    const tr = document.createElement("tr");
+    let billCostText = "-";
+    let netAmountText = money(x.amount);
+
+    if(x.kind === "income"){
+      const cost = Number(x.jobCost || 0);
+      const net = Number(x.amount) - cost;
+      billCostText = `বিল: ${money(x.amount)}<br><small style="color:var(--danger)">খরচ: ${money(cost)}</small>`;
+      netAmountText = money(net);
+    }
+
+    tr.innerHTML = `
+      <td>${escapeHtml(x.date)}</td>
+      <td>${x.kind === "income" ? "আয়" : "ব্যয়"}</td>
+      <td>${escapeHtml(x.staff)}</td>
+      <td>${escapeHtml(x.type)}</td>
+      <td>${escapeHtml(x.details || "-")}</td>
+      <td>${billCostText}</td>
+      <td class="${x.kind === "income" ? "amount-income" : "amount-expense"}">${netAmountText}</td>
+      <td><button class="btn-danger" onclick="deleteTransaction('${x.id}')">মুছুন</button></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+window.deleteTransaction = function(id){
+  if(!confirm("এই হিসাবটি মুছে ফেলতে চান?")) return;
+  transactions = transactions.filter(x => x.id !== id);
+  saveAll();
+  renderReport();
+};
+
+function downloadCSV(){
+  if(!currentReport.length){
+    alert("ডাউনলোড করার মতো কোনো রিপোর্ট নেই।");
+    return;
+  }
+
+  let csv = "তারিখ,ধরন,স্টাফ,ক্যাটাগরি,বিবরণ,মোট বিল,কাজের খরচ,নিট পরিমাণ\n";
+  currentReport.forEach(x => {
+    const isIncome = x.kind === "income";
+    const bill = isIncome ? x.amount : 0;
+    const jobCost = isIncome ? (x.jobCost || 0) : 0;
+    const net = isIncome ? (bill - jobCost) : x.amount;
+
+    const row = [
+      x.date,
+      isIncome ? "আয়" : "ব্যয়",
+      x.staff,
+      x.type,
+      x.details || "",
+      bill,
+      jobCost,
+      net
+    ].map(v => `"${String(v).replaceAll('"','""')}"`).join(",");
+    csv += row + "\n";
+  });
+
+  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fnf-hisab-report.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+$("incomeMode").addEventListener("click", () => setMode("income"));
+$("expenseMode").addEventListener("click", () => setMode("expense"));
+
+$("transactionForm").addEventListener("submit", e => {
+  e.preventDefault();
+
+  if(!staff.length){
+    alert("আগে সেটিংস থেকে অন্তত একজন স্টাফ যোগ করুন।");
+    return;
+  }
+
+  const typeList = mode === "income" ? incomeTypes : expenseTypes;
+  if(!typeList.length){
+    alert(mode === "income" ? "আগে একটি আয়ের ধরন যোগ করুন।" : "আগে একটি ব্যয়ের ধরন যোগ করুন।");
+    return;
+  }
+
+  const item = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,8),
+    date: $("date").value,
+    kind: mode,
+    staff: $("staff").value,
+    type: $("transactionType").value,
+    amount: Number($("amount").value),
+    jobCost: mode === "income" ? Number($("jobCost").value || 0) : 0,
+    details: $("details").value.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  transactions.push(item);
+  saveAll();
+
+  alert(mode === "income" ? "আয় সংরক্ষণ হয়েছে।" : "ব্যয় সংরক্ষণ হয়েছে।");
+  $("transactionForm").reset();
+  $("date").value = today();
+  setMode(mode);
+});
+
+$("transactionForm").addEventListener("reset", () => {
+  setTimeout(() => {
+    $("date").value = today();
+    setMode(mode);
+  }, 0);
+});
+
+$("showReport").addEventListener("click", renderReport);
+$("downloadCsv").addEventListener("click", downloadCSV);
+
+$("addStaff").addEventListener("click", () => {
+  const value = $("newStaff").value.trim();
+  if(!value) return;
+  if(staff.includes(value)) return alert("এই নামটি আগে থেকেই আছে.");
+  staff.push(value);
+  $("newStaff").value = "";
+  saveAll(); renderSettings(); loadDropdowns();
+});
+
+$("addIncomeType").addEventListener("click", () => {
+  const value = $("newIncomeType").value.trim();
+  if(!value) return;
+  if(incomeTypes.includes(value)) return alert("এই ধরনটি আগে থেকেই আছে.");
+  incomeTypes.push(value);
+  $("newIncomeType").value = "";
+  saveAll(); renderSettings(); loadDropdowns();
+});
+
+$("addExpenseType").addEventListener("click", () => {
+  const value = $("newExpenseType").value.trim();
+  if(!value) return;
+  if(expenseTypes.includes(value)) return alert("এই ধরনটি আগে থেকেই আছে.");
+  expenseTypes.push(value);
+  $("newExpenseType").value = "";
+  saveAll(); renderSettings(); loadDropdowns();
+});
+
+$("clearData").addEventListener("click", () => {
+  if(!confirm("সব হিসাব মুছে ফেলতে চান? স্টাফ ও ক্যাটাগরি থাকবে।")) return;
+  transactions = [];
+  saveAll();
+  renderReport();
+  alert("সব হিসাব মুছে ফেলা হয়েছে।");
+});
+
+document.querySelectorAll(".tab").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(x => x.classList.remove("active"));
+    button.classList.add("active");
+    $(button.dataset.page).classList.add("active");
+
+    if(button.dataset.page === "report") renderReport();
+    if(button.dataset.page === "settings") renderSettings();
+  });
+});
+
+$("date").value = today();
+$("fromDate").value = today();
+$("toDate").value = today();
+
+if(!staff.length) staff = ["স্টাফ ১"];
+if(!incomeTypes.length) incomeTypes = ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"];
+if(!expenseTypes.length) expenseTypes = ["দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"];
+
+saveAll();
+setMode("income");
+loadDropdowns();
+renderSettings();
+renderReport();
+</script>
+</body>
+</html>
