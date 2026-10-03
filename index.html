@@ -61,105 +61,140 @@ body{
 header{
   background:linear-gradient(135deg,#115e59,#0f766e);
   color:#fff;
-  padding:18px 16px;
+  padding:18px 24px;
   text-align:center;
   box-shadow:0 2px 10px #0001;
 }
-header h1{margin:0;font-size:22px}
-header p{margin:5px 0 0;font-size:13px;color:#d1fae5}
-.container{max-width:1100px;margin:auto;padding:12px}
+header h1{margin:0;font-size:24px}
+header p{margin:5px 0 0;font-size:14px;color:#d1fae5}
+
+/* ফুল-উইডথ ও চওড়া রেসপনসিভ কনটেইনার */
+.container{
+  max-width: 1400px;
+  margin: auto;
+  padding: 16px 24px;
+}
+
 nav{
-  display:flex;gap:7px;overflow-x:auto;
-  background:#fff;padding:8px;border-radius:10px;
-  box-shadow:0 1px 5px #0001;margin-bottom:12px;
+  display:flex;gap:10px;overflow-x:auto;
+  background:#fff;padding:10px;border-radius:10px;
+  box-shadow:0 1px 5px #0001;margin-bottom:16px;
+  align-items: center;
 }
 nav button{
-  flex:1;min-width:105px;border:0;border-radius:7px;
-  padding:11px 9px;background:#e2e8f0;color:#334155;
+  min-width:120px;border:0;border-radius:7px;
+  padding:12px 16px;background:#e2e8f0;color:#334155;
   cursor:pointer;font-size:15px;font-weight:600;white-space:nowrap;
 }
 nav button.active{background:var(--primary);color:#fff}
 .page{display:none}
 .page.active{display:block}
+
 .card{
   background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:16px;margin-bottom:12px;
+  border-radius:12px;padding:20px;margin-bottom:16px;
   box-shadow:0 2px 8px #00000008;
 }
-.card h2{font-size:19px;margin:0 0 15px}
+.card h2{font-size:20px;margin:0 0 16px}
+
+/* রেসপনসিভ গ্রিড Layout (মোবাইলে ১ কলাম, মাঝারি স্ক্রিনে ২ কলাম, ডেস্কে ৪ কলাম) */
 .grid{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
+  display:grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap:16px;
 }
+
+@media(min-width: 640px){
+  .grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media(min-width: 1024px){
+  .grid{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .grid-4{
-  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:12px;
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:16px;
 }
-label{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
+
+label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
 input,select,textarea{
   width:100%;padding:11px;border:1px solid #cbd5e1;
   border-radius:7px;background:#fff;font-size:15px;
   outline:none;
 }
 input:focus,select:focus,textarea:focus{border-color:var(--primary)}
-textarea{min-height:80px;resize:vertical}
+textarea{min-height:90px;resize:vertical}
 .full{grid-column:1/-1}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-button{
-  border:0;border-radius:7px;padding:10px 14px;
-  cursor:pointer;font-size:14px;
-}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button{border:0;border-radius:7px;padding:11px 18px;cursor:pointer;font-size:15px;font-weight:600}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-primary:hover{background:var(--primary-dark)}
 .btn-danger{background:var(--danger);color:#fff}
 .btn-light{background:#e2e8f0;color:#334155}
 .btn-success{background:var(--success);color:#fff}
+
 .type-switch{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;max-width:500px;
 }
 .type-switch button{background:#e2e8f0;color:#334155}
 .type-switch button.active-income{background:#15803d;color:#fff}
 .type-switch button.active-expense{background:#dc2626;color:#fff}
 
+.bn-preview {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: bold;
+}
+
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:750px}
-th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
+th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:14px}
 th{background:#f8fafc}
 .amount-income{color:var(--success);font-weight:700}
 .amount-expense{color:var(--danger);font-weight:700}
 .empty{text-align:center;color:var(--muted);padding:25px}
 
 .report-summary{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;
 }
-.summary-box{border-radius:9px;padding:13px;color:#fff}
-.summary-box small{display:block;opacity:.9;margin-bottom:4px}
-.summary-box strong{font-size:19px}
+.summary-box{border-radius:9px;padding:15px;color:#fff}
+.summary-box small{display:block;opacity:.9;margin-bottom:4px;font-size:13px}
+.summary-box strong{font-size:22px}
 .income-bg{background:#15803d}
 .expense-bg{background:#dc2626}
 .balance-bg{background:#2563eb}
 
 .breakdown-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;
 }
 .breakdown-card{
-  background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;
+  background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;
 }
-.breakdown-card h4{margin:0 0 8px;font-size:15px;color:var(--primary-dark)}
-.breakdown-list{list-style:none;padding:0;margin:0;font-size:13px}
-.breakdown-list li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #cbd5e1}
+.breakdown-card h4{margin:0 0 10px;font-size:15px;color:var(--primary-dark)}
+.breakdown-list{list-style:none;padding:0;margin:0;font-size:14px}
+.breakdown-list li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #cbd5e1}
 .breakdown-list li:last-child{border-bottom:0}
 
 #loadingStatus{
-  font-size:13px;color:var(--primary);font-weight:bold;margin-left:auto;align-self:center;
+  font-size:14px;color:var(--primary);font-weight:bold;margin-left:auto;align-self:center;
 }
 
-footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
+footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
+
 @media(max-width:700px){
-  .grid,.grid-4,.report-summary,.breakdown-grid{grid-template-columns:1fr}
-  header h1{font-size:19px}
-  .container{padding:8px}
-  nav button{min-width:95px}
+  .report-summary,.breakdown-grid{grid-template-columns:1fr}
+  header h1{font-size:20px}
+  .container{padding:10px}
+  nav button{min-width:100px}
 }
 </style>
 </head>
@@ -192,6 +227,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
           <div>
             <label>তারিখ ও সময়</label>
             <input type="datetime-local" id="date" required>
+            <span id="bnDatePreview" class="bn-preview"></span>
           </div>
 
           <div id="staffBlock">
@@ -318,7 +354,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
 <script>
 /* ==========================================================
-   ১. SUPABASE কনফিগারেশন (সঠিক Key প্রদান করা হলো)
+   ১. SUPABASE কনফিগারেশন
    ========================================================== */
 const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
@@ -356,13 +392,13 @@ async function fetchTransactionsFromDB(){
       $("loadingStatus").textContent = "✅ লাইভ সিঙ্কড";
       renderReport();
     }
-  } catch(err) {
+  } catch (err) {
     console.error("Network Error:", err);
-    $("loadingStatus").textContent = "❌ সিঙ্ক ব্যর্থ";
+    $("loadingStatus").textContent = "❌ নেটওয়ার্ক ত্রুটি";
   }
 }
 
-// বর্তমান তারিখ ও সময় ISO Local format এ পাওয়া
+// বর্তমান তারিখ ও সময় ISO Local format
 function currentDateTimeLocal(){
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -376,7 +412,7 @@ function today(){
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
-// তারিখ ও সময়কে "০৩ সেপ্টেম্বর, ২০২৬(শনিবার) ০৭:৩৫ PM" ফরম্যাটে রূপান্তর
+// তারিখ ও সময়কে বাংলা ফরম্যাটে রূপান্তর (যেমন: ০৩ সেপ্টেম্বর, ২০২৬(শনিবার) ০৭:৩৫ PM)
 function formatDateTime(dateTimeStr) {
   if (!dateTimeStr) return "-";
   const d = new Date(dateTimeStr);
@@ -396,7 +432,17 @@ function formatDateTime(dateTimeStr) {
     hour12: true
   });
 
-  return `${dateStr}(${dayName}) ${timeStr}`;
+  return `${dateStr} (${dayName}) ${timeStr}`;
+}
+
+// ইনপুট ফিল্ডের ঠিক নিচে বাংলা তারিখ লাইভ আপডেট করা
+function updateBnDatePreview() {
+  const val = $("date").value;
+  if (val) {
+    $("bnDatePreview").textContent = formatDateTime(val);
+  } else {
+    $("bnDatePreview").textContent = "";
+  }
 }
 
 function money(n){
@@ -638,6 +684,10 @@ $("incomeMode").addEventListener("click", function() { setMode("income"); });
 $("expenseMode").addEventListener("click", function() { setMode("expense"); });
 $("transactionType").addEventListener("change", handleExpenseTypeChange);
 
+// তারিখের ইনপুটে পরিবর্তনের লিসেনার
+$("date").addEventListener("input", updateBnDatePreview);
+$("date").addEventListener("change", updateBnDatePreview);
+
 $("transactionForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -663,6 +713,7 @@ $("transactionForm").addEventListener("submit", async function(e) {
     alert(mode === "income" ? "আয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।" : "ব্যয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।");
     $("transactionForm").reset();
     $("date").value = currentDateTimeLocal();
+    updateBnDatePreview();
     setMode(mode);
     await fetchTransactionsFromDB();
   }
@@ -671,6 +722,7 @@ $("transactionForm").addEventListener("submit", async function(e) {
 $("transactionForm").addEventListener("reset", function() {
   setTimeout(function() {
     $("date").value = currentDateTimeLocal();
+    updateBnDatePreview();
     setMode(mode);
   }, 0);
 });
@@ -689,7 +741,9 @@ document.querySelectorAll(".tab").forEach(function(button) {
   });
 });
 
+// শুরুর ইনিশিয়ালাইজেশন
 $("date").value = currentDateTimeLocal();
+updateBnDatePreview();
 $("fromDate").value = today();
 $("toDate").value = today();
 
@@ -698,7 +752,7 @@ loadDropdowns();
 fetchTransactionsFromDB();
 
 /* ==========================================================
-   ৩. PWA SERVICE WORKER REGISTRATION
+   ৩. PWA SERVICE WORKER REGISTRATION (Inline)
    ========================================================== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
