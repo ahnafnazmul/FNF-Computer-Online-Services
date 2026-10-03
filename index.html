@@ -167,7 +167,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 <body>
 <header>
   <h1>FNF Computer & Online Services</h1>
-  <p>Banglabazar Road, Barishal.  01533-199800</p>
+  <p>Banglabazar Road, Barishal.</p>
 </header>
 
 <div class="container">
@@ -190,8 +190,8 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
       <form id="transactionForm">
         <div class="grid">
           <div>
-            <label>তারিখ</label>
-            <input type="date" id="date" required>
+            <label>তারিখ ও সময়</label>
+            <input type="datetime-local" id="date" required>
           </div>
 
           <div id="staffBlock">
@@ -297,7 +297,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
         <table>
           <thead>
             <tr>
-              <th>তারিখ</th>
+              <th>তারিখ ও সময়</th>
               <th>ধরন</th>
               <th>স্টাফ</th>
               <th>ক্যাটাগরি</th>
@@ -321,7 +321,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
    ১. SUPABASE কনফিগারেশন
    ========================================================== */
 const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdVhwbSIsImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -357,11 +357,44 @@ async function fetchTransactionsFromDB(){
   }
 }
 
+// বর্তমান তারিখ ও সময় ISO Local format এ পাওয়া (datetime-local ইনপুটের জন্য)
+function currentDateTimeLocal(){
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
+}
+
 function today(){
   const d = new Date();
   const m = String(d.getMonth()+1).padStart(2,"0");
   const day = String(d.getDate()).padStart(2,"0");
   return `${d.getFullYear()}-${m}-${day}`;
+}
+
+// তারিখ ও সময়কে "০৩ সেপ্টেম্বর, ২০২৬(শনিবার) ০৭:৩৫ PM" ফরম্যাটে রূপান্তর
+function formatDateTime(dateTimeStr) {
+  if (!dateTimeStr) return "-";
+  const d = new Date(dateTimeStr);
+  if (isNaN(d.getTime())) return dateTimeStr;
+
+  // তারিখের অংশ (যেমন: ০৩ সেপ্টেম্বর, ২০২৬)
+  const dateStr = d.toLocaleDateString("bn-BD", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+
+  // বারের অংশ (যেমন: শনিবার)
+  const dayName = d.toLocaleDateString("bn-BD", { weekday: "long" });
+
+  // সময়ের অংশ (যেমন: ০৭:৩৫ PM)
+  const timeStr = d.toLocaleTimeString("bn-BD", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+
+  return `${dateStr}(${dayName}) ${timeStr}`;
 }
 
 function money(n){
@@ -455,7 +488,10 @@ function renderReport(){
   const filterType = $("filterType").value;
 
   currentReport = transactions
-    .filter(function(x) { return (!from || x.date >= from) && (!to || x.date <= to); })
+    .filter(function(x) { 
+      const itemDate = x.date ? x.date.slice(0, 10) : "";
+      return (!from || itemDate >= from) && (!to || itemDate <= to); 
+    })
     .filter(function(x) { return !filterStaff || x.staff === filterStaff; })
     .filter(function(x) { return !filterType || x.type === filterType; })
     .sort(function(a,b) { return b.date.localeCompare(a.date); });
@@ -536,7 +572,7 @@ function renderReport(){
       netAmountText = money(net);
     }
 
-    tr.innerHTML = '<td>' + escapeHtml(x.date) + '</td>' +
+    tr.innerHTML = '<td style="white-space:nowrap;">' + formatDateTime(x.date) + '</td>' +
       '<td>' + (x.kind === "income" ? "আয়" : "ব্যয়") + '</td>' +
       '<td>' + escapeHtml(x.staff || "-") + '</td>' +
       '<td>' + escapeHtml(x.type) + '</td>' +
@@ -567,7 +603,7 @@ function downloadCSV(){
     return;
   }
 
-  let csv = "তারিখ,ধরন,স্টাফ,ক্যাটাগরি,বিবরণ,মোট বিল,কাজের খরচ,নিট পরিমাণ\n";
+  let csv = "তারিখ ও সময়,ধরন,স্টাফ,ক্যাটাগরি,বিবরণ,মোট বিল,কাজের খরচ,নিট পরিমাণ\n";
   currentReport.forEach(function(x) {
     const isIncome = x.kind === "income";
     const bill = isIncome ? x.amount : 0;
@@ -575,7 +611,7 @@ function downloadCSV(){
     const net = isIncome ? (bill - jobCost) : x.amount;
 
     const row = [
-      x.date,
+      formatDateTime(x.date),
       isIncome ? "আয়" : "ব্যয়",
       x.staff || "",
       x.type,
@@ -624,7 +660,7 @@ $("transactionForm").addEventListener("submit", async function(e) {
   } else {
     alert(mode === "income" ? "আয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।" : "ব্যয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।");
     $("transactionForm").reset();
-    $("date").value = today();
+    $("date").value = currentDateTimeLocal();
     setMode(mode);
     await fetchTransactionsFromDB();
   }
@@ -632,7 +668,7 @@ $("transactionForm").addEventListener("submit", async function(e) {
 
 $("transactionForm").addEventListener("reset", function() {
   setTimeout(function() {
-    $("date").value = today();
+    $("date").value = currentDateTimeLocal();
     setMode(mode);
   }, 0);
 });
@@ -651,7 +687,7 @@ document.querySelectorAll(".tab").forEach(function(button) {
   });
 });
 
-$("date").value = today();
+$("date").value = currentDateTimeLocal();
 $("fromDate").value = today();
 $("toDate").value = today();
 
