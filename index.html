@@ -13,31 +13,10 @@
 <meta name="apple-mobile-web-app-title" content="FNF Hisab">
 <meta name="application-name" content="FNF Hisab">
 
-<!-- Web App Manifest -->
-<link rel="manifest" href='data:application/manifest+json,{
-  "name": "FNF Computer & Online Services",
-  "short_name": "FNF Hisab",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f1f5f9",
-  "theme_color": "#0f766e",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}'>
-
 <!-- Supabase CDN JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- HTML2Canvas CDN JS (ছবি হিসেবে ডাউনলোড করার জন্য) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -51,6 +30,7 @@
   --border:#dbe2ea;
   --danger:#dc2626;
   --success:#15803d;
+  --memo-blue: #0056b3;
 }
 body{
   margin:0;
@@ -80,7 +60,7 @@ header p{margin:5px 0 0;font-size:14px;color:#d1fae5}
 
 @media (min-width: 1024px) {
   .app-layout {
-    grid-template-columns: 1fr 380px; /* বামে ৬-৭ ভাগ, ডানে ৩৭-৪০% নির্দিষ্ট স্থান */
+    grid-template-columns: 1fr 380px;
   }
 }
 
@@ -190,36 +170,76 @@ th{background:#f8fafc}
   font-size:14px;color:var(--primary);font-weight:bold;margin-left:auto;align-self:center;
 }
 
-/* ================= CALCULATOR STYLES ================= */
-.calc-display {
-  width: 100%;
-  background: #0f172a;
-  color: #00ffcc;
-  text-align: right;
-  font-size: 24px;
-  font-family: monospace;
-  padding: 12px;
+/* ================= WINDOWS CALCULATOR UI ================= */
+.win-calc {
+  background: #f3f3f3;
   border-radius: 8px;
-  margin-bottom: 12px;
-  border: none;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #e5e5e5;
 }
-.calc-buttons {
+.win-calc-header {
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.win-calc-display {
+  background: #f9f9f9;
+  text-align: right;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.win-calc-history {
+  font-size: 12px;
+  color: #666;
+  min-height: 16px;
+}
+.win-calc-main {
+  font-size: 32px;
+  font-weight: bold;
+  color: #111;
+  word-wrap: break-word;
+}
+.win-calc-memory {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.win-calc-memory button {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  padding: 4px 0;
+  color: #666;
+}
+.win-calc-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 3px;
 }
-.calc-buttons button {
-  padding: 12px;
-  font-size: 16px;
-  background: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #cbd5e1;
+.win-calc-btn {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.1s;
 }
-.calc-buttons button.op { background: #e2e8f0; font-weight: bold; }
-.calc-buttons button.eq { background: var(--primary); color: #fff; grid-column: span 2; }
-.calc-buttons button.clear { background: var(--danger); color: #fff; }
+.win-calc-btn:hover { background: #e9e9e9; }
+.win-calc-btn.op-btn { background: #f9f9f9; color: #000; }
+.win-calc-btn.eq-btn { background: #005a9e; color: #fff; }
+.win-calc-btn.eq-btn:hover { background: #004578; }
 
-/* ================= CASH MEMO STYLES ================= */
+/* ================= CASH MEMO INPUT FORM ================= */
 .memo-item-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr auto;
@@ -232,44 +252,175 @@ th{background:#f8fafc}
   display: flex;
   justify-content: space-between;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 15px;
   margin-top: 10px;
-  padding-top: 10px;
-  border-top: 2px solid var(--border);
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
-/* প্রিন্টের জন্য মেমো লেআউট */
-#printableMemo { display: none; }
+/* ================= 21.3cm x 14.2cm MEMO PRINT / PHOTO CONTAINER ================= */
+#memoWrapper {
+  display: none; /* পেজে দেখা যাবে না, প্রিন্ট/ডাউনলোডের সময় ব্যবহার হবে */
+}
 
-@media print {
-  body * { visibility: hidden; }
-  #printableMemo, #printableMemo * { visibility: visible; }
-  #printableMemo {
-    display: block !important;
-    position: absolute;
-    left: 0; top: 0; width: 100%;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  .memo-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-  .memo-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-  .memo-table th, .memo-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+/* মেমোর মূল বডি - নির্দিষ্ট মাপ ২১.৩ সেমি * ১৪.২ সেমি */
+.memo-card-printable {
+  width: 21.3cm;
+  height: 14.2cm;
+  background: #ffffff;
+  padding: 0.6cm 0.8cm;
+  box-sizing: border-box;
+  font-family: Arial, "Noto Sans Bengali", sans-serif;
+  color: #000;
+  position: relative;
+  border: 1px solid #ccc;
+  margin: auto;
+}
+
+.memo-header-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: bold;
+}
+.memo-title-badge {
+  text-align: center;
+}
+.memo-title-badge span {
+  border: 2px solid #0056b3;
+  color: #0056b3;
+  font-weight: bold;
+  padding: 2px 14px;
+  border-radius: 12px;
+  font-size: 16px;
+  display: inline-block;
+}
+.shop-title-main {
+  text-align: center;
+  color: #0056b3;
+  font-size: 26px;
+  font-weight: 900;
+  margin: 4px 0;
+  letter-spacing: 0.5px;
+}
+.shop-sub-details {
+  text-align: center;
+  font-size: 11px;
+  color: #111;
+  margin-bottom: 4px;
+}
+.shop-address-badge {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.shop-address-badge span {
+  background: #0056b3;
+  color: #fff;
+  padding: 3px 15px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.memo-meta-grid {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.memo-dots {
+  border-bottom: 1px dotted #000;
+  display: inline-block;
+  min-width: 200px;
+}
+
+.date-box-wrap {
+  display: inline-flex;
+  border: 1px solid #0056b3;
+}
+.date-box-wrap div {
+  width: 22px;
+  height: 20px;
+  border-right: 1px solid #0056b3;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
+}
+.date-box-wrap div:last-child { border-right: none; }
+
+/* মেমো টেবিল ডিজাইন (ছবি অনুযায়ী ব্লু বর্ডার) */
+.memo-main-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #0056b3;
+  margin-bottom: 8px;
+}
+.memo-main-table th {
+  background: #0056b3;
+  color: #fff;
+  border: 1px solid #0056b3;
+  padding: 4px;
+  font-size: 13px;
+}
+.memo-main-table td {
+  border-right: 1px solid #0056b3;
+  border-bottom: 1px solid #0056b3;
+  padding: 4px 6px;
+  font-size: 12px;
+  height: 22px;
+}
+.memo-main-table td:last-child { border-right: none; }
+
+.memo-footer-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 12px;
+  margin-top: 15px;
+}
+.memo-signatures {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  position: absolute;
+  bottom: 0.5cm;
+  left: 0;
+  padding: 0 0.8cm;
+  box-sizing: border-box;
+}
+.sig-line {
+  border-top: 1px dashed #000;
+  width: 140px;
+  text-align: center;
+  padding-top: 4px;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
 
-@media(max-width:700px){
-  .report-summary,.breakdown-grid{grid-template-columns:1fr}
-  header h1{font-size:18px}
-  .app-layout{padding:10px}
+@media print {
+  body * { visibility: hidden; }
+  #memoWrapper, #memoWrapper * { visibility: visible; }
+  #memoWrapper {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  @page {
+    size: 21.3cm 14.2cm;
+    margin: 0;
+  }
 }
 </style>
 </head>
 
 <body>
 <header>
-  <h1>FNF Computer & Online Services</h1>
-  <p>Banglabazar Road, Barishal.</p>
+  <h1 id="hdrShopName">FNF Computer & Online Services</h1>
+  <p id="hdrShopSub">Banglabazar Road, Barishal.</p>
 </header>
 
 <div class="app-layout">
@@ -378,7 +529,7 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
           </div>
           <div class="summary-box balance-bg">
             <small>অবশিষ্ট লাভ</small>
-            <strong id="balance">৳ 0</strong>
+            <strong id="totalBalance">৳ 0</strong>
           </div>
         </div>
 
@@ -423,58 +574,98 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
   <!-- ডান পাশ: ক্যালকুলেটর এবং ক্যাশ মেমো -->
   <aside class="sidebar-tools">
     
-    <!-- CALCULATOR -->
+    <!-- WINDOWS CALCULATOR -->
     <div class="card">
-      <h3>🧮 ক্যালকুলেটর</h3>
-      <input type="text" id="calcDisplay" class="calc-display" readonly value="0">
-      <div class="calc-buttons">
-        <button class="clear" onclick="calcClear()">C</button>
-        <button class="op" onclick="calcAppend('/')">÷</button>
-        <button class="op" onclick="calcAppend('*')">×</button>
-        <button class="op" onclick="calcAppend('-')">-</button>
-        
-        <button onclick="calcAppend('7')">7</button>
-        <button onclick="calcAppend('8')">8</button>
-        <button onclick="calcAppend('9')">9</button>
-        <button class="op" onclick="calcAppend('+')">+</button>
-        
-        <button onclick="calcAppend('4')">4</button>
-        <button onclick="calcAppend('5')">5</button>
-        <button onclick="calcAppend('6')">6</button>
-        <button class="eq" onclick="calcCalculate()">=</button>
-        
-        <button onclick="calcAppend('1')">1</button>
-        <button onclick="calcAppend('2')">2</button>
-        <button onclick="calcAppend('3')">3</button>
-        <button onclick="calcAppend('0')">0</button>
+      <div class="win-calc">
+        <div class="win-calc-header">
+          <span>☰</span> Standard Calculator
+        </div>
+        <div class="win-calc-display">
+          <div id="winCalcHistory" class="win-calc-history"></div>
+          <div id="winCalcDisplay" class="win-calc-main">0</div>
+        </div>
+        <div class="win-calc-memory">
+          <button disabled>MC</button>
+          <button disabled>MR</button>
+          <button disabled>M+</button>
+          <button disabled>M-</button>
+          <button disabled>MS</button>
+          <button disabled>M▾</button>
+        </div>
+        <div class="win-calc-grid">
+          <button class="win-calc-btn op-btn" onclick="winCalcOp('%')">%</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcClearEntry()">CE</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcClear()">C</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcBackspace()">⌫</button>
+
+          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('1/x')">1/x</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqr')">x²</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqrt')">√x</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcOp('/')">÷</button>
+
+          <button class="win-calc-btn" onclick="winCalcNum('7')">7</button>
+          <button class="win-calc-btn" onclick="winCalcNum('8')">8</button>
+          <button class="win-calc-btn" onclick="winCalcNum('9')">9</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcOp('*')">×</button>
+
+          <button class="win-calc-btn" onclick="winCalcNum('4')">4</button>
+          <button class="win-calc-btn" onclick="winCalcNum('5')">5</button>
+          <button class="win-calc-btn" onclick="winCalcNum('6')">6</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcOp('-')">-</button>
+
+          <button class="win-calc-btn" onclick="winCalcNum('1')">1</button>
+          <button class="win-calc-btn" onclick="winCalcNum('2')">2</button>
+          <button class="win-calc-btn" onclick="winCalcNum('3')">3</button>
+          <button class="win-calc-btn op-btn" onclick="winCalcOp('+')">+</button>
+
+          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('+/-')">+/-</button>
+          <button class="win-calc-btn" onclick="winCalcNum('0')">0</button>
+          <button class="win-calc-btn" onclick="winCalcNum('.')">.</button>
+          <button class="win-calc-btn eq-btn" onclick="winCalcEquals()">=</button>
+        </div>
       </div>
     </div>
 
-    <!-- CASH MEMO GENERATOR -->
+    <!-- CASH MEMO GENERATOR FORM -->
     <div class="card">
       <h3>🧾 ক্যাশ মেমো জেনারেটর</h3>
-      <div style="margin-bottom:10px;">
-        <input type="text" id="custName" placeholder="গ্রাহকের নাম (ঐচ্ছিক)">
+      <div style="display:grid; gap:8px; margin-bottom:10px;">
+        <input type="text" id="custMemoNo" placeholder="মেমো নম্বর (যেমন: 153)">
+        <input type="text" id="custName" placeholder="গ্রাহকের নাম">
+        <input type="text" id="custAddress" placeholder="ঠিকানা">
+        <input type="date" id="custDate">
       </div>
       
       <div id="memoItemsContainer">
         <div class="memo-item-row">
-          <input type="text" placeholder="কাজের নাম" class="m-desc">
+          <input type="text" placeholder="কাজের বিবরণ" class="m-desc">
           <input type="number" placeholder="পরিমাণ" class="m-qty" value="1" oninput="updateMemoTotal()">
-          <input type="number" placeholder="দাম" class="m-price" value="0" oninput="updateMemoTotal()">
+          <input type="number" placeholder="দর" class="m-price" value="0" oninput="updateMemoTotal()">
           <button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.remove(); updateMemoTotal();">✕</button>
         </div>
       </div>
 
       <button class="btn-light" style="width:100%; margin-top:6px;" onclick="addMemoItem()">+ আইটেম যোগ করুন</button>
 
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+        <div>
+          <label style="font-size:12px">জমা (টাকা):</label>
+          <input type="number" id="memoPaid" value="0" oninput="updateMemoTotal()">
+        </div>
+        <div>
+          <label style="font-size:12px">বাকি (টাকা):</label>
+          <input type="number" id="memoDue" value="0" readonly>
+        </div>
+      </div>
+
       <div class="memo-total-bar">
         <span>মোট বিল:</span>
         <span id="memoTotalText">৳ 0</span>
       </div>
 
-      <div class="actions" style="margin-top:12px;">
-        <button class="btn-primary" style="width:100%" onclick="printMemo()">🖨️ মেমো প্রিন্ট করুন</button>
+      <div class="actions" style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button class="btn-primary" onclick="generateAndPrintMemo()">🖨️ প্রিন্ট করুন</button>
+        <button class="btn-success" onclick="downloadMemoImage()">🖼️ ফটো ডাউনলোড</button>
       </div>
     </div>
 
@@ -482,43 +673,118 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
 
 </div>
 
-<!-- গোপন প্রিন্ট ফরম্যাট -->
-<div id="printableMemo">
-  <div class="memo-header">
-    <h2>FNF Computer & Online Services</h2>
-    <p>বাংলাবাজার রোড, বরিশাল। মোবাইল: ০১৭XX-XXXXXX</p>
-    <hr>
-    <h3>ক্যাশ মেমো</h3>
-  </div>
-  <p><strong>গ্রাহকের নাম:</strong> <span id="pCustName">নগদ গ্রাহক</span></p>
-  <p><strong>তারিখ:</strong> <span id="pMemoDate"></span></p>
+<!-- ২১.৩ সেমি * ১৪.২ সেমি হিডেন মেমো টেমপ্লেট (প্রিন্ট ও ফটো ডাউনলোডের জন্য) -->
+<div id="memoWrapper">
+  <div class="memo-card-printable" id="memoPrintArea">
+    
+    <div class="memo-header-top">
+      <div><span id="mBismillah">বিসমিল্লাহির রহমানির রহীম</span></div>
+      <div class="memo-title-badge"><span>ক্যাশ মেমো</span></div>
+      <div style="text-align:right;">
+        <div id="mProp">প্রোঃ মোঃ কামরুল হাসান</div>
+        <div id="mPhone1">📱 01712-764142</div>
+      </div>
+    </div>
 
-  <table class="memo-table">
-    <thead>
-      <tr>
-        <th>ক্রমিক</th>
-        <th>বিবরণ/কাজের নাম</th>
-        <th>পরিমাণ</th>
-        <th>দর</th>
-        <th>মোট (৳)</th>
-      </tr>
-    </thead>
-    <tbody id="pMemoBody"></tbody>
-  </table>
+    <div class="shop-title-main" id="mShopName">এফ.এন.এফ টেলিকম এন্ড ভ্যারাইটিজ</div>
+    <div class="shop-sub-details" id="mSubDetails">
+      অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি তোলা হয়, ছবি থেকে ছবি, ইলেকট্রনিক্স, ইলেকট্রিক, স্টেশনেরী মালামাল পাওয়া যায়।
+      <br>Email: <span id="mEmail">fnf.barisal@gmail.com</span> | Agent: <span id="mPhone2">01913-866688</span>
+    </div>
 
-  <div style="text-align:right; margin-top:15px; font-size:18px; font-weight:bold;">
-    সর্বমোট: <span id="pMemoTotal">৳ 0</span>
-  </div>
+    <div class="shop-address-badge">
+      <span id="mAddress"> শহীদ নজরুল ইসলাম সড়ক, বাংলাবাজার, বরিশাল। </span>
+    </div>
 
-  <div style="margin-top:40px; display:flex; justify-content:space-between;">
-    <p>গ্রাহকের স্বাক্ষর</p>
-    <p>কর্তৃপক্ষের স্বাক্ষর</p>
+    <div class="memo-meta-grid">
+      <div>নং- <span id="pMemoNo" style="font-size:16px; color:#d9534f;">153</span></div>
+      <div>
+        তারিখঃ 
+        <div class="date-box-wrap" id="pDateBoxes">
+          <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">
+      নাম ঃ <span id="pCustName" class="memo-dots"></span><br>
+      ঠিকানা ঃ <span id="pCustAddress" class="memo-dots" style="min-width:300px;"></span>
+    </div>
+
+    <!-- মেমো টেবিল -->
+    <table class="memo-main-table">
+      <thead>
+        <tr>
+          <th style="width: 8%;">নং</th>
+          <th style="width: 52%;">মালের বিবরণ</th>
+          <th style="width: 12%;">পরিমাণ</th>
+          <th style="width: 13%;">দর</th>
+          <th style="width: 15%;">টাকা</th>
+        </tr>
+      </thead>
+      <tbody id="pMemoTableBody">
+        <!-- জাভাস্ক্রিপ্ট দ্বারা ৮-১০টি রো অটো পূরণ হবে -->
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" rowspan="3" style="vertical-align: top; font-weight: bold;">
+            কথায় ঃ <span id="pInWords"></span>
+          </td>
+          <td style="font-weight: bold; text-align: right; background:#f0f4f8;">মোট =</td>
+          <td id="pTotal" style="font-weight: bold; text-align: right;">0</td>
+        </tr>
+        <tr>
+          <td style="font-weight: bold; text-align: right; background:#f0f4f8;">জমা =</td>
+          <td id="pPaid" style="font-weight: bold; text-align: right;">0</td>
+        </tr>
+        <tr>
+          <td style="font-weight: bold; text-align: right; background:#f0f4f8;">বাকি =</td>
+          <td id="pDue" style="font-weight: bold; text-align: right;">0</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="memo-signatures">
+      <div class="sig-line">ক্রেতার স্বাক্ষর</div>
+      <div class="sig-line">বিক্রেতার স্বাক্ষর</div>
+    </div>
+
   </div>
 </div>
 
 <footer>Developed by @NAZMULSBLOG</footer>
 
 <script>
+/* ==========================================================
+   ০. ক্যাশ মেমো তথ্য পরিবর্তন করার কনফিগারেশন (EDIT HERE)
+   ========================================================== */
+const MEMO_CONFIG = {
+  bismillah: "বিসমিল্লাহির রহমানির রহীম",
+  shopName: "এফ.এন.এফ টেলিকম এন্ড ভ্যারাইটিজ",
+  proprietor: "প্রোঃ মোঃ কামরুল হাসান",
+  phone1: "01712-764142",
+  phone2: "01533-199800 (দোকান)",
+  email: "fnf.barisal@gmail.com",
+  services: "অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি সকল কাজ করা হয়।",
+  address: "শহীদ নজরুল ইসলাম সড়ক, বাংলাবাজার, বরিশাল।"
+};
+
+// মেমো কনফিগারেশন সেট করা
+function applyMemoConfig() {
+  document.getElementById("mBismillah").textContent = MEMO_CONFIG.bismillah;
+  document.getElementById("mShopName").textContent = MEMO_CONFIG.shopName;
+  document.getElementById("mProp").textContent = MEMO_CONFIG.proprietor;
+  document.getElementById("mPhone1").textContent = "📱 " + MEMO_CONFIG.phone1;
+  document.getElementById("mPhone2").textContent = MEMO_CONFIG.phone2;
+  document.getElementById("mEmail").textContent = MEMO_CONFIG.email;
+  document.getElementById("mAddress").textContent = MEMO_CONFIG.address;
+  document.getElementById("mSubDetails").innerHTML = `${MEMO_CONFIG.services}<br>Email: ${MEMO_CONFIG.email} | Agent: ${MEMO_CONFIG.phone2}`;
+  
+  // হেডার ডায়নামিক করা
+  document.getElementById("hdrShopName").textContent = MEMO_CONFIG.shopName;
+  document.getElementById("hdrShopSub").textContent = MEMO_CONFIG.address;
+}
+
 /* ==========================================================
    ১. SUPABASE কনফিগারেশন
    ========================================================== */
@@ -697,7 +963,7 @@ function renderReport(){
 
   $("totalIncome").textContent = money(totalIncome);
   $("totalExpense").textContent = money(totalExpense);
-  $("balance").textContent = money(totalIncome - totalExpense);
+  $("totalBalance").textContent = money(totalIncome - totalExpense);
 
   const staffUl = $("staffBreakdown"); staffUl.innerHTML = "";
   if(!Object.keys(staffIncomeMap).length){
@@ -772,39 +1038,104 @@ function downloadCSV(){
 }
 
 /* ==========================================================
-   ২. CALCULATOR FUNCTIONS
+   ২. WINDOWS CALCULATOR LOGIC
    ========================================================== */
-let calcExpr = "";
-function calcAppend(val) {
-  if (calcExpr === "0") calcExpr = "";
-  calcExpr += val;
-  $("calcDisplay").value = calcExpr;
+let winCurrent = "0";
+let winPrev = "";
+let winOp = null;
+let winResetNext = false;
+
+function winUpdateDisplay() {
+  $("winCalcDisplay").textContent = winCurrent;
+  $("winCalcHistory").textContent = winPrev;
 }
-function calcClear() {
-  calcExpr = "";
-  $("calcDisplay").value = "0";
-}
-function calcCalculate() {
-  try {
-    calcExpr = eval(calcExpr).toString();
-    $("calcDisplay").value = calcExpr;
-  } catch (e) {
-    $("calcDisplay").value = "Error";
-    calcExpr = "";
+
+function winCalcNum(num) {
+  if (winCurrent === "0" || winResetNext) {
+    winCurrent = num === "." ? "0." : num;
+    winResetNext = false;
+  } else {
+    if (num === "." && winCurrent.includes(".")) return;
+    winCurrent += num;
   }
+  winUpdateDisplay();
+}
+
+function winCalcOp(op) {
+  if (winOp && !winResetNext) winCalcEquals();
+  winPrev = winCurrent + " " + op;
+  winOp = op;
+  winResetNext = true;
+  winUpdateDisplay();
+}
+
+function winCalcEquals() {
+  if (!winOp || !winPrev) return;
+  let prevNum = parseFloat(winPrev.split(" ")[0]);
+  let currNum = parseFloat(winCurrent);
+  let res = 0;
+
+  switch (winOp) {
+    case '+': res = prevNum + currNum; break;
+    case '-': res = prevNum - currNum; break;
+    case '*': res = prevNum * currNum; break;
+    case '/': res = currNum !== 0 ? prevNum / currNum : "Error"; break;
+    case '%': res = (prevNum * currNum) / 100; break;
+  }
+
+  winCurrent = res.toString();
+  winPrev = "";
+  winOp = null;
+  winResetNext = true;
+  winUpdateDisplay();
+}
+
+function winCalcClear() {
+  winCurrent = "0";
+  winPrev = "";
+  winOp = null;
+  winResetNext = false;
+  winUpdateDisplay();
+}
+
+function winCalcClearEntry() {
+  winCurrent = "0";
+  winUpdateDisplay();
+}
+
+function winCalcBackspace() {
+  if (winCurrent.length > 1) {
+    winCurrent = winCurrent.slice(0, -1);
+  } else {
+    winCurrent = "0";
+  }
+  winUpdateDisplay();
+}
+
+function winCalcSpecial(type) {
+  let val = parseFloat(winCurrent);
+  if (isNaN(val)) return;
+
+  if (type === '1/x') winCurrent = (1 / val).toString();
+  else if (type === 'sqr') winCurrent = (val * val).toString();
+  else if (type === 'sqrt') winCurrent = Math.sqrt(val).toString();
+  else if (type === '+/-') winCurrent = (val * -1).toString();
+
+  winResetNext = true;
+  winUpdateDisplay();
 }
 
 /* ==========================================================
-   ৩. CASH MEMO FUNCTIONS
+   ৩. CASH MEMO GENERATOR & PRINT / PHOTO LOGIC
    ========================================================== */
 function addMemoItem() {
   const container = $("memoItemsContainer");
   const div = document.createElement("div");
   div.className = "memo-item-row";
   div.innerHTML = `
-    <input type="text" placeholder="কাজের নাম" class="m-desc">
+    <input type="text" placeholder="কাজের বিবরণ" class="m-desc">
     <input type="number" placeholder="পরিমাণ" class="m-qty" value="1" oninput="updateMemoTotal()">
-    <input type="number" placeholder="দাম" class="m-price" value="0" oninput="updateMemoTotal()">
+    <input type="number" placeholder="দর" class="m-price" value="0" oninput="updateMemoTotal()">
     <button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.remove(); updateMemoTotal();">✕</button>
   `;
   container.appendChild(div);
@@ -818,40 +1149,111 @@ function updateMemoTotal() {
     const price = Number(r.querySelector(".m-price").value || 0);
     total += (qty * price);
   });
+
+  const paid = Number($("memoPaid").value || 0);
+  const due = total - paid;
+  
+  $("memoDue").value = due > 0 ? due : 0;
   $("memoTotalText").textContent = money(total);
 }
 
-function printMemo() {
-  const custName = $("custName").value || "নগদ গ্রাহক";
-  $("pCustName").textContent = custName;
-  $("pMemoDate").textContent = formatDateTime(new Date().toISOString());
+// সংখ্যাকে বাংলায় কথায় রূপান্তর করার সাধারণ ফাংশন
+function numberToBengaliWords(num) {
+  if (!num || num === 0) return "শূন্য টাকা মাত্র";
+  return num + " টাকা মাত্র";
+}
 
-  const pBody = $("pMemoBody");
+function populatePrintableMemo() {
+  $("pMemoNo").textContent = $("custMemoNo").value || "153";
+  $("pCustName").textContent = $("custName").value || "নগদ গ্রাহক";
+  $("pCustAddress").textContent = $("custAddress").value || "-";
+
+  // তারিখ বক্স পূরন
+  const inputDate = $("custDate").value ? new Date($("custDate").value) : new Date();
+  const dStr = String(inputDate.getDate()).padStart(2, '0') + 
+               String(inputDate.getMonth() + 1).padStart(2, '0') + 
+               String(inputDate.getFullYear());
+  
+  const boxes = $("pDateBoxes").querySelectorAll("div");
+  for (let i = 0; i < 8; i++) {
+    boxes[i].textContent = dStr[i] || "";
+  }
+
+  // টেবিল আইটেমসমূহ
+  const pBody = $("pMemoTableBody");
   pBody.innerHTML = "";
+  
   let total = 0;
-
   const rows = document.querySelectorAll(".memo-item-row");
   let sl = 1;
+
   rows.forEach(r => {
-    const desc = r.querySelector(".m-desc").value || "কাজ/পণ্য";
+    const desc = r.querySelector(".m-desc").value || "";
     const qty = Number(r.querySelector(".m-qty").value || 0);
     const price = Number(r.querySelector(".m-price").value || 0);
     const itemTotal = qty * price;
     total += itemTotal;
 
-    pBody.innerHTML += `
-      <tr>
-        <td>${sl++}</td>
-        <td>${escapeHtml(desc)}</td>
-        <td>${qty}</td>
-        <td>${money(price)}</td>
-        <td>${money(itemTotal)}</td>
-      </tr>
-    `;
+    if (desc) {
+      pBody.innerHTML += `
+        <tr>
+          <td style="text-align:center;">${sl++}</td>
+          <td>${escapeHtml(desc)}</td>
+          <td style="text-align:center;">${qty}</td>
+          <td style="text-align:right;">${price}</td>
+          <td style="text-align:right;">${itemTotal}</td>
+        </tr>
+      `;
+    }
   });
 
-  $("pMemoTotal").textContent = money(total);
+  // মেমো সুন্দর দেখানোর জন্য খালি লাইন ফিল আপ
+  const minRows = 7;
+  for (let i = sl; i <= minRows; i++) {
+    pBody.innerHTML += `
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    `;
+  }
+
+  const paid = Number($("memoPaid").value || 0);
+  const due = total - paid;
+
+  $("pTotal").textContent = total;
+  $("pPaid").textContent = paid;
+  $("pDue").textContent = due > 0 ? due : 0;
+  $("pInWords").textContent = numberToBengaliWords(total);
+}
+
+function generateAndPrintMemo() {
+  populatePrintableMemo();
   window.print();
+}
+
+function downloadMemoImage() {
+  populatePrintableMemo();
+  const memoEl = $("memoPrintArea");
+  
+  // সাময়িকভাবে মেমোটি স্ক্রিনে দেখানোর ব্যবস্থা
+  $("memoWrapper").style.display = "block";
+  
+  html2canvas(memoEl, {
+    scale: 3, // উচ্চ মান নিশ্চিত করার জন্য (300 DPI সমতুল্য)
+    useCORS: true
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = `Cash_Memo_${$("custMemoNo").value || '153'}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    
+    // পুনরায় হাইড করা
+    $("memoWrapper").style.display = "none";
+  });
 }
 
 /* ==========================================================
@@ -914,11 +1316,14 @@ document.querySelectorAll(".tab").forEach(btn => {
   });
 });
 
+// ইনিশিয়ালাইজেশন
 $("date").value = currentDateTimeLocal();
+$("custDate").value = today();
 updateBnDatePreview();
 $("fromDate").value = today();
 $("toDate").value = today();
 
+applyMemoConfig();
 setMode("income");
 loadDropdowns();
 fetchTransactionsFromDB();
