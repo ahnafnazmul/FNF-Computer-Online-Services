@@ -132,7 +132,7 @@ th{background:#f8fafc}
 }
 .breakdown-card h4{margin:0 0 8px;font-size:15px;color:var(--primary-dark)}
 .breakdown-list{list-style:none;padding:0;margin:0;font-size:13px}
-.breakdown-list li{display:flex;justify-space-between;padding:4px 0;border-bottom:1px dashed #cbd5e1}
+.breakdown-list li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #cbd5e1}
 .breakdown-list li:last-child{border-bottom:0}
 
 footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
@@ -148,7 +148,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 <body>
 <header>
   <h1>FNF Computer & Online Services</h1>
-  <p>Banglabazar Road, Barishal. 01533-199800</p>
+  <p>Banglabazar Road, Barishal.</p>
 </header>
 
 <div class="container">
@@ -175,9 +175,10 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
             <input type="date" id="date" required>
           </div>
 
-          <div>
-            <label>স্টাফ</label>
-            <select id="staff" required></select>
+          <!-- আয়ের ক্ষেত্রে বা বেতনের ক্ষেত্রে স্টাফ ড্রপডাউন -->
+          <div id="staffBlock">
+            <label id="staffLabel">স্টাফ (কাজ করেছেন)</label>
+            <select id="staff"></select>
           </div>
 
           <div>
@@ -248,7 +249,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
           <strong id="totalIncome">৳ 0</strong>
         </div>
         <div class="summary-box expense-bg">
-          <small>মোট ব্যয় (সাধারণ + কাজের খরচ)</small>
+          <small>মোট ব্যয় (সাধারণ + বেতন + কাজের খরচ)</small>
           <strong id="totalExpense">৳ 0</strong>
         </div>
         <div class="summary-box balance-bg">
@@ -260,7 +261,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
       <!-- স্টাফ ও খাত ভিত্তিক সামারি -->
       <div class="breakdown-grid">
         <div class="breakdown-card">
-          <h4>👤 স্টাফ অনুযায়ী নিট আয়</h4>
+          <h4>👤 স্টাফের চূড়ান্ত নিট আয় (আয় - বেতন - কাজের খরচ)</h4>
           <ul id="staffBreakdown" class="breakdown-list">
             <li><span>কোনো তথ্য নেই</span></li>
           </ul>
@@ -285,7 +286,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
               <th>ক্যাটাগরি</th>
               <th>বিবরণ</th>
               <th>কাজের বিল/খরচ</th>
-              <th>নিট লাভ/পরিমাণ</th>
+              <th>নিট পরিমাণ</th>
               <th>অ্যাকশন</th>
             </tr>
           </thead>
@@ -386,6 +387,20 @@ function escapeHtml(value){
   }[c]));
 }
 
+function handleExpenseTypeChange(){
+  if(mode === "expense"){
+    const selectedType = $("transactionType").value;
+    if(selectedType === "বেতন"){
+      $("staffBlock").style.display = "block";
+      $("staffLabel").textContent = "স্টাফ (কাকে বেতন দেওয়া হলো)";
+      $("staff").required = true;
+    } else {
+      $("staffBlock").style.display = "none";
+      $("staff").required = false;
+    }
+  }
+}
+
 function setMode(newMode){
   mode = newMode;
   $("incomeMode").className = newMode === "income" ? "active-income" : "";
@@ -394,6 +409,15 @@ function setMode(newMode){
   $("amountLabel").textContent = newMode === "income" ? "কাজের মোট বিল (আয়)" : "ব্যয়ের পরিমাণ";
   $("saveBtn").textContent = newMode === "income" ? "আয় সংরক্ষণ করুন" : "ব্যয় সংরক্ষণ করুন";
   $("jobCostBlock").style.display = newMode === "income" ? "block" : "none";
+
+  if(newMode === "income"){
+    $("staffBlock").style.display = "block";
+    $("staffLabel").textContent = "স্টাফ (কাজ করেছেন)";
+    $("staff").required = true;
+  } else {
+    handleExpenseTypeChange();
+  }
+
   populateTypeDropdown();
 }
 
@@ -416,7 +440,6 @@ function loadDropdowns(){
   populateSelect($("staff"), staff, "স্টাফ নির্বাচন করুন");
   populateTypeDropdown();
   
-  // ফিল্টার ড্রপডাউনগুলো আপডেট
   populateSelect($("filterStaff"), staff, "সকল স্টাফ");
   const allTypes = Array.from(new Set([...incomeTypes, ...expenseTypes]));
   populateSelect($("filterType"), allTypes, "সকল খাত/ধরন");
@@ -488,8 +511,10 @@ function renderReport(){
       const netIncome = Number(x.amount) - Number(x.jobCost || 0);
       totalIncome += netIncome;
       
-      // স্টাফের আয় যোগ
-      staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) + netIncome;
+      // স্টাফের আয়ে যোগ (কাজের নিট বিল)
+      if(x.staff){
+        staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) + netIncome;
+      }
 
       if(x.jobCost) {
         totalExpense += Number(x.jobCost);
@@ -501,6 +526,11 @@ function renderReport(){
       
       // ব্যয়ের খাত যোগ
       expenseCategoryMap[x.type] = (expenseCategoryMap[x.type] || 0) + expenseVal;
+
+      // যদি ব্যয়ের ধরন 'বেতন' হয় এবং স্টাফ সিলেক্ট করা থাকে, তবে তার আয়ের তালিকা থেকে বিয়োগ হবে
+      if(x.type === "বেতন" && x.staff){
+        staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) - expenseVal;
+      }
     }
   });
 
@@ -508,18 +538,20 @@ function renderReport(){
   $("totalExpense").textContent = money(totalExpense);
   $("balance").textContent = money(totalIncome - totalExpense);
 
-  // স্টাফ আয়ের ব্রেকডাউন রেন্ডার
+  // স্টাফের চূড়ান্ত আয়ের ব্রেকডাউন
   const staffUl = $("staffBreakdown");
   staffUl.innerHTML = "";
   if(Object.keys(staffIncomeMap).length === 0){
     staffUl.innerHTML = "<li><span>কোনো তথ্য নেই</span></li>";
   } else {
     for(let s in staffIncomeMap){
-      staffUl.innerHTML += `<li><span>${escapeHtml(s)}</span> <strong>${money(staffIncomeMap[s])}</strong></li>`;
+      const netVal = staffIncomeMap[s];
+      const colorStyle = netVal < 0 ? 'style="color:var(--danger)"' : '';
+      staffUl.innerHTML += `<li><span>${escapeHtml(s)}</span> <strong ${colorStyle}>${money(netVal)}</strong></li>`;
     }
   }
 
-  // ব্যয়ের খাতের ব্রেকডাউন রেন্ডার
+  // ব্যয়ের খাতের ব্রেকডাউন
   const expUl = $("expenseBreakdown");
   expUl.innerHTML = "";
   if(Object.keys(expenseCategoryMap).length === 0){
@@ -553,7 +585,7 @@ function renderReport(){
     tr.innerHTML = `
       <td>${escapeHtml(x.date)}</td>
       <td>${x.kind === "income" ? "আয়" : "ব্যয়"}</td>
-      <td>${escapeHtml(x.staff)}</td>
+      <td>${escapeHtml(x.staff || "-")}</td>
       <td>${escapeHtml(x.type)}</td>
       <td>${escapeHtml(x.details || "-")}</td>
       <td>${billCostText}</td>
@@ -587,7 +619,7 @@ function downloadCSV(){
     const row = [
       x.date,
       isIncome ? "আয়" : "ব্যয়",
-      x.staff,
+      x.staff || "",
       x.type,
       x.details || "",
       bill,
@@ -608,11 +640,12 @@ function downloadCSV(){
 
 $("incomeMode").addEventListener("click", () => setMode("income"));
 $("expenseMode").addEventListener("click", () => setMode("expense"));
+$("transactionType").addEventListener("change", handleExpenseTypeChange);
 
 $("transactionForm").addEventListener("submit", e => {
   e.preventDefault();
 
-  if(!staff.length){
+  if(mode === "income" && !staff.length){
     alert("আগে সেটিংস থেকে অন্তত একজন স্টাফ যোগ করুন।");
     return;
   }
@@ -627,7 +660,7 @@ $("transactionForm").addEventListener("submit", e => {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,8),
     date: $("date").value,
     kind: mode,
-    staff: $("staff").value,
+    staff: (mode === "income" || $("transactionType").value === "বেতন") ? $("staff").value : "",
     type: $("transactionType").value,
     amount: Number($("amount").value),
     jobCost: mode === "income" ? Number($("jobCost").value || 0) : 0,
@@ -707,7 +740,7 @@ $("toDate").value = today();
 
 if(!staff.length) staff = ["স্টাফ ১"];
 if(!incomeTypes.length) incomeTypes = ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"];
-if(!expenseTypes.length) expenseTypes = ["দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"];
+if(!expenseTypes.length) expenseTypes = ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"];
 
 saveAll();
 setMode("income");
