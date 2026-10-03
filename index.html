@@ -6,6 +6,36 @@
 <meta name="theme-color" content="#0f766e">
 <title>FNF Computer & Online Services</title>
 
+<!-- PWA & Mobile Web App Meta Tags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FNF Hisab">
+<meta name="application-name" content="FNF Hisab">
+
+<!-- Web App Manifest (Data URI with App Configurations) -->
+<link rel="manifest" href='data:application/manifest+json,{
+  "name": "FNF Computer & Online Services",
+  "short_name": "FNF Hisab",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0f766e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}'>
+
 <!-- Supabase CDN JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -153,8 +183,8 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
       <h2>হিসাব যোগ করুন</h2>
 
       <div class="type-switch">
-        <button id="incomeMode" class="active-income" type="button">➕ আয় যোগ করুন</button>
-        <button id="expenseMode" type="button">➖ সাধারণ ব্যয় (দোকান)</button>
+        <button id="incomeMode" class="active-income" type="button">➕ আয় যোগ করুন</button>
+        <button id="expenseMode" type="button">➖ সাধারণ ব্যয় (দোকান)</button>
       </div>
 
       <form id="transactionForm">
@@ -170,12 +200,12 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
           </div>
 
           <div>
-            <label id="typeLabel">আয়ের ধরন</label>
+            <label id="typeLabel">আয়ের ধরন</label>
             <select id="transactionType" required></select>
           </div>
 
           <div id="incomeAmountBlock">
-            <label id="amountLabel">কাজের মোট বিল (আয়)</label>
+            <label id="amountLabel">কাজের মোট বিল (আয়)</label>
             <input type="number" id="amount" min="0" step="0.01" placeholder="যেমন: 500" required>
           </div>
 
@@ -186,12 +216,12 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
           <div class="full">
             <label>বিবরণ / কাজের নাম</label>
-            <textarea id="details" placeholder="প্রয়োজনে কাজ বা লেনদেনের বিবরণ লিখুন"></textarea>
+            <textarea id="details" placeholder="প্রয়োজনে কাজ বা লেনদেনের বিবরণ লিখুন"></textarea>
           </div>
         </div>
 
         <div class="actions">
-          <button class="btn-primary" type="submit" id="saveBtn">আয় সংরক্ষণ করুন</button>
+          <button class="btn-primary" type="submit" id="saveBtn">আয় সংরক্ষণ করুন</button>
           <button class="btn-light" type="reset">ফর্ম পরিষ্কার</button>
         </div>
       </form>
@@ -201,7 +231,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
   <!-- REPORT -->
   <section id="report" class="page">
     <div class="card">
-      <h2>আয়-ব্যয় ফিল্টার ও রিপোর্ট</h2>
+      <h2>আয়-ব্যয় ফিল্টার ও রিপোর্ট</h2>
 
       <div class="grid-4">
         <div>
@@ -233,11 +263,11 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
       <div class="report-summary">
         <div class="summary-box income-bg">
-          <small>মোট নিট আয় (Net Revenue)</small>
+          <small>মোট নিট আয় (Net Revenue)</small>
           <strong id="totalIncome">৳ 0</strong>
         </div>
         <div class="summary-box expense-bg">
-          <small>মোট ব্যয় (সাধারণ + বেতন + কাজের খরচ)</small>
+          <small>মোট ব্যয় (সাধারণ + বেতন + কাজের খরচ)</small>
           <strong id="totalExpense">৳ 0</strong>
         </div>
         <div class="summary-box balance-bg">
@@ -248,13 +278,13 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
       <div class="breakdown-grid">
         <div class="breakdown-card">
-          <h4>👤 স্টাফের চূড়ান্ত নিট আয় (আয় - বেতন - কাজের খরচ)</h4>
+          <h4>👤 স্টাফের চূড়ান্ত নিট আয় (আয় - বেতন - কাজের খরচ)</h4>
           <ul id="staffBreakdown" class="breakdown-list">
             <li><span>কোনো তথ্য নেই</span></li>
           </ul>
         </div>
         <div class="breakdown-card">
-          <h4>💸 খাত (ক্যাটাগরি) অনুযায়ী ব্যয়</h4>
+          <h4>💸 খাত (ক্যাটাগরি) অনুযায়ী ব্যয়</h4>
           <ul id="expenseBreakdown" class="breakdown-list">
             <li><span>কোনো তথ্য নেই</span></li>
           </ul>
@@ -301,7 +331,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const CONFIG = {
   staffList: ["কামরুল", "নাজমুল", "সিফাত", "আল-আমিন", "মাহিন"],
   incomeTypes: ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"],
-  expenseTypes: ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"]
+  expenseTypes: ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"]
 };
 
 let transactions = [];
@@ -318,7 +348,7 @@ async function fetchTransactionsFromDB(){
     .order("createdAt", { ascending: false });
 
   if(error){
-    alert("ডেটা লোড করতে সমস্যা হয়েছে: " + error.message);
+    alert("ডেটা লোড করতে সমস্যা হয়েছে: " + error.message);
     $("loadingStatus").textContent = "❌ সিঙ্ক ব্যর্থ";
   } else {
     transactions = data || [];
@@ -358,7 +388,7 @@ function handleExpenseTypeChange(){
     const selectedType = $("transactionType").value;
     if(selectedType === "বেতন"){
       $("staffBlock").style.display = "block";
-      $("staffLabel").textContent = "স্টাফ (কাকে বেতন দেওয়া হলো)";
+      $("staffLabel").textContent = "স্টাফ (কাকে বেতন দেওয়া হলো)";
       $("staff").required = true;
     } else {
       $("staffBlock").style.display = "none";
@@ -371,9 +401,9 @@ function setMode(newMode){
   mode = newMode;
   $("incomeMode").className = newMode === "income" ? "active-income" : "";
   $("expenseMode").className = newMode === "expense" ? "active-expense" : "";
-  $("typeLabel").textContent = newMode === "income" ? "আয়ের ধরন" : "ব্যয়ের ধরন";
-  $("amountLabel").textContent = newMode === "income" ? "কাজের মোট বিল (আয়)" : "ব্যয়ের পরিমাণ";
-  $("saveBtn").textContent = newMode === "income" ? "আয় সংরক্ষণ করুন" : "ব্যয় সংরক্ষণ করুন";
+  $("typeLabel").textContent = newMode === "income" ? "আয়ের ধরন" : "ব্যয়ের ধরন";
+  $("amountLabel").textContent = newMode === "income" ? "কাজের মোট বিল (আয়)" : "ব্যয়ের পরিমাণ";
+  $("saveBtn").textContent = newMode === "income" ? "আয় সংরক্ষণ করুন" : "ব্যয় সংরক্ষণ করুন";
   $("jobCostBlock").style.display = newMode === "income" ? "block" : "none";
 
   if(newMode === "income"){
@@ -414,7 +444,7 @@ function loadDropdowns(){
 function populateTypeDropdown(){
   const list = mode === "income" ? CONFIG.incomeTypes : CONFIG.expenseTypes;
   populateSelect($("transactionType"), list,
-    mode === "income" ? "আয়ের ধরন নির্বাচন করুন" : "ব্যয়ের ধরন নির্বাচন করুন"
+    mode === "income" ? "আয়ের ধরন নির্বাচন করুন" : "ব্যয়ের ধরন নির্বাচন করুন"
   );
 }
 
@@ -490,7 +520,7 @@ function renderReport(){
   body.innerHTML = "";
 
   if(!currentReport.length){
-    body.innerHTML = '<tr><td colspan="8" class="empty">এই সময়ের কোনো হিসাব পাওয়া যায়নি</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">এই সময়ের কোনো হিসাব পাওয়া যায়নি</td></tr>';
     return;
   }
 
@@ -507,7 +537,7 @@ function renderReport(){
     }
 
     tr.innerHTML = '<td>' + escapeHtml(x.date) + '</td>' +
-      '<td>' + (x.kind === "income" ? "আয়" : "ব্যয়") + '</td>' +
+      '<td>' + (x.kind === "income" ? "আয়" : "ব্যয়") + '</td>' +
       '<td>' + escapeHtml(x.staff || "-") + '</td>' +
       '<td>' + escapeHtml(x.type) + '</td>' +
       '<td>' + escapeHtml(x.details || "-") + '</td>' +
@@ -525,7 +555,7 @@ window.deleteTransaction = async function(id){
   const { error } = await supabaseClient.from("transactions").delete().eq("id", id);
 
   if(error){
-    alert("মুছতে সমস্যা হয়েছে: " + error.message);
+    alert("মুছতে সমস্যা হয়েছে: " + error.message);
   } else {
     await fetchTransactionsFromDB();
   }
@@ -546,7 +576,7 @@ function downloadCSV(){
 
     const row = [
       x.date,
-      isIncome ? "আয়" : "ব্যয়",
+      isIncome ? "আয়" : "ব্যয়",
       x.staff || "",
       x.type,
       x.details || "",
@@ -589,10 +619,10 @@ $("transactionForm").addEventListener("submit", async function(e) {
   const { error } = await supabaseClient.from("transactions").insert([item]);
 
   if(error){
-    alert("সেভ করতে সমস্যা হয়েছে: " + error.message);
+    alert("সেভ করতে সমস্যা হয়েছে: " + error.message);
     $("loadingStatus").textContent = "❌ সেভ ব্যর্থ";
   } else {
-    alert(mode === "income" ? "আয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।" : "ব্যয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।");
+    alert(mode === "income" ? "আয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।" : "ব্যয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।");
     $("transactionForm").reset();
     $("date").value = today();
     setMode(mode);
@@ -620,6 +650,7 @@ document.querySelectorAll(".tab").forEach(function(button) {
     if(button.dataset.page === "report") renderReport();
   });
 });
+
 $("date").value = today();
 $("fromDate").value = today();
 $("toDate").value = today();
@@ -627,6 +658,34 @@ $("toDate").value = today();
 setMode("income");
 loadDropdowns();
 fetchTransactionsFromDB();
+
+/* ==========================================================
+   ৩. PWA SERVICE WORKER REGISTRATION (Inline)
+   ========================================================== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swCode = `
+      const CACHE_NAME = 'fnf-hisab-cache-v1';
+      self.addEventListener('install', e => {
+        e.waitUntil(
+          caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(['./', 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2']);
+          })
+        );
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          fetch(e.request).catch(() => caches.match(e.request))
+        );
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl)
+      .then(() => console.log('Service Worker Registered'))
+      .catch(err => console.log('SW Registration Failed: ', err));
+  });
+}
 </script>
 </body>
 </html>
