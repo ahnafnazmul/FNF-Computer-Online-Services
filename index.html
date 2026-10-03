@@ -43,7 +43,7 @@ nav{
 nav button{
   flex:1;min-width:105px;border:0;border-radius:7px;
   padding:11px 9px;background:#e2e8f0;color:#334155;
-  cursor:pointer;font-size:14px;white-space:nowrap;
+  cursor:pointer;font-size:15px;font-weight:600;white-space:nowrap;
 }
 nav button.active{background:var(--primary);color:#fff}
 .page{display:none}
@@ -87,10 +87,7 @@ button{
 .type-switch button{background:#e2e8f0;color:#334155}
 .type-switch button.active-income{background:#15803d;color:#fff}
 .type-switch button.active-expense{background:#dc2626;color:#fff}
-.notice{
-  background:#ecfeff;border:1px solid #a5f3fc;color:#155e75;
-  padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px;
-}
+
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:750px}
 th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
@@ -98,22 +95,7 @@ th{background:#f8fafc}
 .amount-income{color:var(--success);font-weight:700}
 .amount-expense{color:var(--danger);font-weight:700}
 .empty{text-align:center;color:var(--muted);padding:25px}
-.list-item{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:10px;padding:10px 0;border-bottom:1px solid #e2e8f0;
-}
-.list-item:last-child{border-bottom:0}
-.list-name{font-weight:600}
-.muted{color:var(--muted);font-size:12px}
-.setting-grid{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
-}
-.setting-box{
-  border:1px solid var(--border);border-radius:10px;padding:13px;
-}
-.setting-box h3{margin:0 0 10px;font-size:16px}
-.add-row{display:flex;gap:7px}
-.add-row input{flex:1}
+
 .report-summary{
   display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
 }
@@ -137,7 +119,7 @@ th{background:#f8fafc}
 
 footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 @media(max-width:700px){
-  .grid,.grid-4,.setting-grid,.report-summary,.breakdown-grid{grid-template-columns:1fr}
+  .grid,.grid-4,.report-summary,.breakdown-grid{grid-template-columns:1fr}
   header h1{font-size:19px}
   .container{padding:8px}
   nav button{min-width:95px}
@@ -152,10 +134,10 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 </header>
 
 <div class="container">
+  <!-- শুধু হোম ও রিপোর্ট নেভিগেশন -->
   <nav>
-    <button class="tab active" data-page="home">হোম</button>
+    <button class="tab active" data-page="home">আয়-ব্যয় যোগ</button>
     <button class="tab" data-page="report">রিপোর্ট</button>
-    <button class="tab" data-page="settings">সেটিংস</button>
   </nav>
 
   <!-- HOME: INPUT ONLY -->
@@ -175,7 +157,6 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
             <input type="date" id="date" required>
           </div>
 
-          <!-- আয়ের ক্ষেত্রে বা বেতনের ক্ষেত্রে স্টাফ ড্রপডাউন -->
           <div id="staffBlock">
             <label id="staffLabel">স্টাফ (কাজ করেছেন)</label>
             <select id="staff"></select>
@@ -241,6 +222,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
       <div class="actions">
         <button class="btn-primary" id="showReport">রিপোর্ট দেখুন</button>
         <button class="btn-success" id="downloadCsv">CSV ডাউনলোড</button>
+        <button class="btn-danger" id="clearData">সব হিসাব মুছে দিন</button>
       </div>
 
       <div class="report-summary">
@@ -295,76 +277,50 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
       </div>
     </div>
   </section>
-
-  <!-- SETTINGS -->
-  <section id="settings" class="page">
-    <div class="notice">
-      এখানে স্টাফ, আয় ও ব্যয়ের ধরন যোগ/বাদ দিলে সেগুলো হোম পেজের dropdown-এ ব্যবহার করা যাবে।
-    </div>
-
-    <div class="setting-grid">
-      <div class="setting-box">
-        <h3>স্টাফ</h3>
-        <div class="add-row">
-          <input id="newStaff" placeholder="স্টাফের নাম">
-          <button class="btn-primary" id="addStaff">যোগ</button>
-        </div>
-        <div id="staffList"></div>
-      </div>
-
-      <div class="setting-box">
-        <h3>আয়ের ধরন</h3>
-        <div class="add-row">
-          <input id="newIncomeType" placeholder="যেমন: কম্পিউটার কাজ">
-          <button class="btn-primary" id="addIncomeType">যোগ</button>
-        </div>
-        <div id="incomeTypeList"></div>
-      </div>
-
-      <div class="setting-box">
-        <h3>ব্যয়ের ধরন</h3>
-        <div class="add-row">
-          <input id="newExpenseType" placeholder="যেমন: দোকান ভাড়া">
-          <button class="btn-primary" id="addExpenseType">যোগ</button>
-        </div>
-        <div id="expenseTypeList"></div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:12px">
-      <h2>ডেটা</h2>
-      <div class="actions">
-        <button class="btn-danger" id="clearData">সব হিসাব মুছে দিন</button>
-      </div>
-      <p class="muted">এই prototype-এ ডেটা শুধু এই browser/device-এ সংরক্ষিত হবে। Supabase যুক্ত করার পর একই ডেটা সব device থেকে live ব্যবহার করা যাবে।</p>
-    </div>
-  </section>
 </div>
 
 <footer>Developed by @NAZMULSBLOG</footer>
 
 <script>
-const KEY = {
-  transactions: "fnf_transactions_v2",
-  staff: "fnf_staff_v2",
-  incomeTypes: "fnf_income_types_v2",
-  expenseTypes: "fnf_expense_types_v2"
+/* ==========================================================
+   ক্যাটাগরি ও সেটিংস কনফিগ (প্রয়োজন অনুযায়ী নিচে পরিবর্তন করুন)
+   ========================================================== */
+const CONFIG = {
+  // ১. স্টাফের নামসমূহ
+  staffList: [
+    "স্টাফ ১",
+    "স্টাফ ২"
+  ],
+
+  // ২. আয়ের ধরন / ক্যাটাগরি
+  incomeTypes: [
+    "অনলাইন আবেদন",
+    "কম্পিউটার কাজ",
+    "প্রিন্ট",
+    "ফটোকপি",
+    "অন্যান্য"
+  ],
+
+  // ৩. ব্যয়ের ধরন / ক্যাটাগরি
+  expenseTypes: [
+    "বেতন",
+    "দোকান ভাড়া",
+    "বিদ্যুৎ বিল",
+    "ইন্টারনেট বিল",
+    "স্টেশনারি",
+    "অন্যান্য"
+  ]
 };
 
-let transactions = JSON.parse(localStorage.getItem(KEY.transactions) || "[]");
-let staff = JSON.parse(localStorage.getItem(KEY.staff) || "[]");
-let incomeTypes = JSON.parse(localStorage.getItem(KEY.incomeTypes) || "[]");
-let expenseTypes = JSON.parse(localStorage.getItem(KEY.expenseTypes) || "[]");
+const KEY_TRANSACTIONS = "fnf_transactions_v3";
+let transactions = JSON.parse(localStorage.getItem(KEY_TRANSACTIONS) || "[]");
 let mode = "income";
 let currentReport = [];
 
 const $ = id => document.getElementById(id);
 
-function saveAll(){
-  localStorage.setItem(KEY.transactions, JSON.stringify(transactions));
-  localStorage.setItem(KEY.staff, JSON.stringify(staff));
-  localStorage.setItem(KEY.incomeTypes, JSON.stringify(incomeTypes));
-  localStorage.setItem(KEY.expenseTypes, JSON.stringify(expenseTypes));
+function saveTransactions(){
+  localStorage.setItem(KEY_TRANSACTIONS, JSON.stringify(transactions));
 }
 
 function today(){
@@ -437,58 +393,20 @@ function populateSelect(select, items, placeholder){
 }
 
 function loadDropdowns(){
-  populateSelect($("staff"), staff, "স্টাফ নির্বাচন করুন");
+  populateSelect($("staff"), CONFIG.staffList, "স্টাফ নির্বাচন করুন");
   populateTypeDropdown();
   
-  populateSelect($("filterStaff"), staff, "সকল স্টাফ");
-  const allTypes = Array.from(new Set([...incomeTypes, ...expenseTypes]));
+  populateSelect($("filterStaff"), CONFIG.staffList, "সকল স্টাফ");
+  const allTypes = Array.from(new Set([...CONFIG.incomeTypes, ...CONFIG.expenseTypes]));
   populateSelect($("filterType"), allTypes, "সকল খাত/ধরন");
 }
 
 function populateTypeDropdown(){
-  const list = mode === "income" ? incomeTypes : expenseTypes;
+  const list = mode === "income" ? CONFIG.incomeTypes : CONFIG.expenseTypes;
   populateSelect($("transactionType"), list,
     mode === "income" ? "আয়ের ধরন নির্বাচন করুন" : "ব্যয়ের ধরন নির্বাচন করুন"
   );
 }
-
-function renderSettings(){
-  renderList("staffList", staff, "staff");
-  renderList("incomeTypeList", incomeTypes, "incomeType");
-  renderList("expenseTypeList", expenseTypes, "expenseType");
-}
-
-function renderList(elementId, items, kind){
-  const box = $(elementId);
-  box.innerHTML = "";
-  if(!items.length){
-    box.innerHTML = '<div class="empty">কোনো তথ্য নেই</div>';
-    return;
-  }
-
-  items.forEach((item, index) => {
-    const row = document.createElement("div");
-    row.className = "list-item";
-    row.innerHTML = `
-      <div>
-        <div class="list-name">${escapeHtml(item)}</div>
-      </div>
-      <button class="btn-danger" type="button" onclick="removeSetting('${kind}', ${index})">বাদ</button>
-    `;
-    box.appendChild(row);
-  });
-}
-
-window.removeSetting = function(kind, index){
-  const source = kind === "staff" ? staff : kind === "incomeType" ? incomeTypes : expenseTypes;
-  const name = source[index];
-  if(!confirm(`"${name}" বাদ দিতে চান?`)) return;
-
-  source.splice(index,1);
-  saveAll();
-  renderSettings();
-  loadDropdowns();
-};
 
 function renderReport(){
   const from = $("fromDate").value;
@@ -511,7 +429,6 @@ function renderReport(){
       const netIncome = Number(x.amount) - Number(x.jobCost || 0);
       totalIncome += netIncome;
       
-      // স্টাফের আয়ে যোগ (কাজের নিট বিল)
       if(x.staff){
         staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) + netIncome;
       }
@@ -524,10 +441,8 @@ function renderReport(){
       const expenseVal = Number(x.amount);
       totalExpense += expenseVal;
       
-      // ব্যয়ের খাত যোগ
       expenseCategoryMap[x.type] = (expenseCategoryMap[x.type] || 0) + expenseVal;
 
-      // যদি ব্যয়ের ধরন 'বেতন' হয় এবং স্টাফ সিলেক্ট করা থাকে, তবে তার আয়ের তালিকা থেকে বিয়োগ হবে
       if(x.type === "বেতন" && x.staff){
         staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) - expenseVal;
       }
@@ -538,7 +453,6 @@ function renderReport(){
   $("totalExpense").textContent = money(totalExpense);
   $("balance").textContent = money(totalIncome - totalExpense);
 
-  // স্টাফের চূড়ান্ত আয়ের ব্রেকডাউন
   const staffUl = $("staffBreakdown");
   staffUl.innerHTML = "";
   if(Object.keys(staffIncomeMap).length === 0){
@@ -551,7 +465,6 @@ function renderReport(){
     }
   }
 
-  // ব্যয়ের খাতের ব্রেকডাউন
   const expUl = $("expenseBreakdown");
   expUl.innerHTML = "";
   if(Object.keys(expenseCategoryMap).length === 0){
@@ -599,7 +512,7 @@ function renderReport(){
 window.deleteTransaction = function(id){
   if(!confirm("এই হিসাবটি মুছে ফেলতে চান?")) return;
   transactions = transactions.filter(x => x.id !== id);
-  saveAll();
+  saveTransactions();
   renderReport();
 };
 
@@ -645,17 +558,6 @@ $("transactionType").addEventListener("change", handleExpenseTypeChange);
 $("transactionForm").addEventListener("submit", e => {
   e.preventDefault();
 
-  if(mode === "income" && !staff.length){
-    alert("আগে সেটিংস থেকে অন্তত একজন স্টাফ যোগ করুন।");
-    return;
-  }
-
-  const typeList = mode === "income" ? incomeTypes : expenseTypes;
-  if(!typeList.length){
-    alert(mode === "income" ? "আগে একটি আয়ের ধরন যোগ করুন।" : "আগে একটি ব্যয়ের ধরন যোগ করুন।");
-    return;
-  }
-
   const item = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,8),
     date: $("date").value,
@@ -669,7 +571,7 @@ $("transactionForm").addEventListener("submit", e => {
   };
 
   transactions.push(item);
-  saveAll();
+  saveTransactions();
 
   alert(mode === "income" ? "আয় সংরক্ষণ হয়েছে।" : "ব্যয় সংরক্ষণ হয়েছে।");
   $("transactionForm").reset();
@@ -687,37 +589,10 @@ $("transactionForm").addEventListener("reset", () => {
 $("showReport").addEventListener("click", renderReport);
 $("downloadCsv").addEventListener("click", downloadCSV);
 
-$("addStaff").addEventListener("click", () => {
-  const value = $("newStaff").value.trim();
-  if(!value) return;
-  if(staff.includes(value)) return alert("এই নামটি আগে থেকেই আছে.");
-  staff.push(value);
-  $("newStaff").value = "";
-  saveAll(); renderSettings(); loadDropdowns();
-});
-
-$("addIncomeType").addEventListener("click", () => {
-  const value = $("newIncomeType").value.trim();
-  if(!value) return;
-  if(incomeTypes.includes(value)) return alert("এই ধরনটি আগে থেকেই আছে.");
-  incomeTypes.push(value);
-  $("newIncomeType").value = "";
-  saveAll(); renderSettings(); loadDropdowns();
-});
-
-$("addExpenseType").addEventListener("click", () => {
-  const value = $("newExpenseType").value.trim();
-  if(!value) return;
-  if(expenseTypes.includes(value)) return alert("এই ধরনটি আগে থেকেই আছে.");
-  expenseTypes.push(value);
-  $("newExpenseType").value = "";
-  saveAll(); renderSettings(); loadDropdowns();
-});
-
 $("clearData").addEventListener("click", () => {
-  if(!confirm("সব হিসাব মুছে ফেলতে চান? স্টাফ ও ক্যাটাগরি থাকবে।")) return;
+  if(!confirm("সব হিসাব মুছে ফেলতে চান?")) return;
   transactions = [];
-  saveAll();
+  saveTransactions();
   renderReport();
   alert("সব হিসাব মুছে ফেলা হয়েছে।");
 });
@@ -730,7 +605,6 @@ document.querySelectorAll(".tab").forEach(button => {
     $(button.dataset.page).classList.add("active");
 
     if(button.dataset.page === "report") renderReport();
-    if(button.dataset.page === "settings") renderSettings();
   });
 });
 
@@ -738,14 +612,8 @@ $("date").value = today();
 $("fromDate").value = today();
 $("toDate").value = today();
 
-if(!staff.length) staff = ["স্টাফ ১"];
-if(!incomeTypes.length) incomeTypes = ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"];
-if(!expenseTypes.length) expenseTypes = ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"];
-
-saveAll();
 setMode("income");
 loadDropdowns();
-renderSettings();
 renderReport();
 </script>
 </body>
