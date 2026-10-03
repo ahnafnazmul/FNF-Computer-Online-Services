@@ -137,7 +137,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 <body>
 <header>
   <h1>FNF Computer & Online Services</h1>
-  <p>Banglabazar Road, Barishal. 01533-199800</p>
+  <p>Banglabazar Road, Barishal.</p>
 </header>
 
 <div class="container">
@@ -288,7 +288,7 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
 <script>
 /* ==========================================================
-   ১. SUPABASE কনফিগারেশন (আপনার তথ্য দিয়ে আপডেট করা হয়েছে)
+   ১. SUPABASE কনফিগারেশন
    ========================================================== */
 const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
@@ -300,8 +300,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
    ========================================================== */
 const CONFIG = {
   staffList: ["কামরুল", "নাজমুল", "সিফাত", "আল-আমিন", "মাহিন"],
-  incomeTypes: ["অনলাইন আবেদন", "কম্পিউটার কম্পোজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"],
-  expenseTypes: ["নাশতা", "বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "যন্ত্রাংশ সার্ভিসিং" "অন্যান্য"]
+  incomeTypes: ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"],
+  expenseTypes: ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"]
 };
 
 let transactions = [];
@@ -313,9 +313,9 @@ const $ = id => document.getElementById(id);
 async function fetchTransactionsFromDB(){
   $("loadingStatus").textContent = "🔄 তথ্য সিঙ্ক হচ্ছে...";
   const { data, error } = await supabaseClient
-    .from('transactions')
-    .select('*')
-    .order('createdAt', { ascending: false });
+    .from("transactions")
+    .select("*")
+    .order("createdAt", { ascending: false });
 
   if(error){
     alert("ডেটা লোড করতে সমস্যা হয়েছে: " + error.message);
@@ -342,9 +342,15 @@ function money(n){
 }
 
 function escapeHtml(value){
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
+  return String(value ?? "").replace(/[&<>"']/g, function(c) {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    }[c];
+  });
 }
 
 function handleExpenseTypeChange(){
@@ -388,7 +394,7 @@ function populateSelect(select, items, placeholder){
   first.textContent = placeholder;
   select.appendChild(first);
 
-  items.forEach(item => {
+  items.forEach(function(item) {
     const option = document.createElement("option");
     option.value = item;
     option.textContent = item;
@@ -419,16 +425,16 @@ function renderReport(){
   const filterType = $("filterType").value;
 
   currentReport = transactions
-    .filter(x => (!from || x.date >= from) && (!to || x.date <= to))
-    .filter(x => !filterStaff || x.staff === filterStaff)
-    .filter(x => !filterType || x.type === filterType)
-    .sort((a,b) => b.date.localeCompare(a.date));
+    .filter(function(x) { return (!from || x.date >= from) && (!to || x.date <= to); })
+    .filter(function(x) { return !filterStaff || x.staff === filterStaff; })
+    .filter(function(x) { return !filterType || x.type === filterType; })
+    .sort(function(a,b) { return b.date.localeCompare(a.date); });
 
   let totalIncome = 0, totalExpense = 0;
   let staffIncomeMap = {};
   let expenseCategoryMap = {};
 
-  currentReport.forEach(x => {
+  currentReport.forEach(function(x) {
     if(x.kind === "income") {
       const netIncome = Number(x.amount) - Number(x.jobCost || 0);
       totalIncome += netIncome;
@@ -439,7 +445,8 @@ function renderReport(){
 
       if(x.jobCost) {
         totalExpense += Number(x.jobCost);
-        expenseCategoryMap["কাজের খরচ (" + x.type + ")"] = (expenseCategoryMap["কাজের খরচ (" + x.type + ")"] || 0) + Number(x.jobCost);
+        const costKey = "কাজের খরচ (" + x.type + ")";
+        expenseCategoryMap[costKey] = (expenseCategoryMap[costKey] || 0) + Number(x.jobCost);
       }
     } else {
       const expenseVal = Number(x.amount);
@@ -465,7 +472,7 @@ function renderReport(){
     for(let s in staffIncomeMap){
       const netVal = staffIncomeMap[s];
       const colorStyle = netVal < 0 ? 'style="color:var(--danger)"' : '';
-      staffUl.innerHTML += `<li><span>${escapeHtml(s)}</span> <strong ${colorStyle}>${money(netVal)}</strong></li>`;
+      staffUl.innerHTML += '<li><span>' + escapeHtml(s) + '</span> <strong ' + colorStyle + '>' + money(netVal) + '</strong></li>';
     }
   }
 
@@ -475,7 +482,7 @@ function renderReport(){
     expUl.innerHTML = "<li><span>কোনো তথ্য নেই</span></li>";
   } else {
     for(let c in expenseCategoryMap){
-      expUl.innerHTML += `<li><span>${escapeHtml(c)}</span> <strong>${money(expenseCategoryMap[c])}</strong></li>`;
+      expUl.innerHTML += '<li><span>' + escapeHtml(c) + '</span> <strong>' + money(expenseCategoryMap[c]) + '</strong></li>';
     }
   }
 
@@ -487,7 +494,7 @@ function renderReport(){
     return;
   }
 
-  currentReport.forEach(x => {
+  currentReport.forEach(function(x) {
     const tr = document.createElement("tr");
     let billCostText = "-";
     let netAmountText = money(x.amount);
@@ -495,20 +502,18 @@ function renderReport(){
     if(x.kind === "income"){
       const cost = Number(x.jobCost || 0);
       const net = Number(x.amount) - cost;
-      billCostText = `বিল: ${money(x.amount)}<br><small style="color:var(--danger)">খরচ: ${money(cost)}</small>`;
+      billCostText = 'বিল: ' + money(x.amount) + '<br><small style="color:var(--danger)">খরচ: ' + money(cost) + '</small>';
       netAmountText = money(net);
     }
 
-    tr.innerHTML = `
-      <td>${escapeHtml(x.date)}</td>
-      <td>${x.kind === "income" ? "আয়" : "ব্যয়"}</td>
-      <td>${escapeHtml(x.staff || "-")}</td>
-      <td>${escapeHtml(x.type)}</td>
-      <td>${escapeHtml(x.details || "-")}</td>
-      <td>${billCostText}</td>
-      <td class="${x.kind === "income" ? "amount-income" : "amount-expense"}">${netAmountText}</td>
-      <td><button class="btn-danger" onclick="deleteTransaction('${x.id}')">মুছুন</button></td>
-    `;
+    tr.innerHTML = '<td>' + escapeHtml(x.date) + '</td>' +
+      '<td>' + (x.kind === "income" ? "আয়" : "ব্যয়") + '</td>' +
+      '<td>' + escapeHtml(x.staff || "-") + '</td>' +
+      '<td>' + escapeHtml(x.type) + '</td>' +
+      '<td>' + escapeHtml(x.details || "-") + '</td>' +
+      '<td>' + billCostText + '</td>' +
+      '<td class="' + (x.kind === "income" ? "amount-income" : "amount-expense") + '">' + netAmountText + '</td>' +
+      '<td><button class="btn-danger" onclick="deleteTransaction(\'' + x.id + '\')">মুছুন</button></td>';
     body.appendChild(tr);
   });
 }
@@ -517,7 +522,7 @@ window.deleteTransaction = async function(id){
   if(!confirm("এই হিসাবটি মুছে ফেলতে চান?")) return;
   
   $("loadingStatus").textContent = "⏳ মোছা হচ্ছে...";
-  const { error } = await supabaseClient.from('transactions').delete().eq('id', id);
+  const { error } = await supabaseClient.from("transactions").delete().eq("id", id);
 
   if(error){
     alert("মুছতে সমস্যা হয়েছে: " + error.message);
@@ -533,7 +538,7 @@ function downloadCSV(){
   }
 
   let csv = "তারিখ,ধরন,স্টাফ,ক্যাটাগরি,বিবরণ,মোট বিল,কাজের খরচ,নিট পরিমাণ\n";
-  currentReport.forEach(x => {
+  currentReport.forEach(function(x) {
     const isIncome = x.kind === "income";
     const bill = isIncome ? x.amount : 0;
     const jobCost = isIncome ? (x.jobCost || 0) : 0;
@@ -548,7 +553,7 @@ function downloadCSV(){
       bill,
       jobCost,
       net
-    ].map(v => `"${String(v).replaceAll('"','""')}"`).join(",");
+    ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(",");
     csv += row + "\n";
   });
 
@@ -561,11 +566,11 @@ function downloadCSV(){
   URL.revokeObjectURL(url);
 }
 
-$("incomeMode").addEventListener("click", () => setMode("income"));
-$("expenseMode").addEventListener("click", () => setMode("expense"));
+$("incomeMode").addEventListener("click", function() { setMode("income"); });
+$("expenseMode").addEventListener("click", function() { setMode("expense"); });
 $("transactionType").addEventListener("change", handleExpenseTypeChange);
 
-$("transactionForm").addEventListener("submit", async e => {
+$("transactionForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const item = {
@@ -581,7 +586,7 @@ $("transactionForm").addEventListener("submit", async e => {
   };
 
   $("loadingStatus").textContent = "⏳ সেভ হচ্ছে...";
-  const { error } = await supabaseClient.from('transactions').insert([item]);
+  const { error } = await supabaseClient.from("transactions").insert([item]);
 
   if(error){
     alert("সেভ করতে সমস্যা হয়েছে: " + error.message);
@@ -595,8 +600,8 @@ $("transactionForm").addEventListener("submit", async e => {
   }
 });
 
-$("transactionForm").addEventListener("reset", () => {
-  setTimeout(() => {
+$("transactionForm").addEventListener("reset", function() {
+  setTimeout(function() {
     $("date").value = today();
     setMode(mode);
   }, 0);
@@ -605,10 +610,10 @@ $("transactionForm").addEventListener("reset", () => {
 $("showReport").addEventListener("click", renderReport);
 $("downloadCsv").addEventListener("click", downloadCSV);
 
-document.querySelectorAll(".tab").forEach(button => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-    document.querySelectorAll(".page").forEach(x => x.classList.remove("active"));
+document.querySelectorAll(".tab").forEach(function(button) {
+  button.addEventListener("click", function() {
+    document.querySelectorAll(".tab").forEach(function(x) { x.classList.remove("active"); });
+    document.querySelectorAll(".page").forEach(function(x) { x.classList.remove("active")); });
     button.classList.add("active");
     $(button.dataset.page).classList.add("active");
 
