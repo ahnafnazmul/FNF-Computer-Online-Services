@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="FNF Hisab">
 <meta name="application-name" content="FNF Hisab">
 
-<!-- Web App Manifest (Data URI with App Configurations) -->
+<!-- Web App Manifest -->
 <link rel="manifest" href='data:application/manifest+json,{
   "name": "FNF Computer & Online Services",
   "short_name": "FNF Hisab",
@@ -318,10 +318,10 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
 <script>
 /* ==========================================================
-   ১. SUPABASE কনফিগারেশন
+   ১. SUPABASE কনফিগারেশন (সঠিক Key প্রদান করা হলো)
    ========================================================== */
 const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdVhwbSIsImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -342,22 +342,27 @@ const $ = id => document.getElementById(id);
 
 async function fetchTransactionsFromDB(){
   $("loadingStatus").textContent = "🔄 তথ্য সিঙ্ক হচ্ছে...";
-  const { data, error } = await supabaseClient
-    .from("transactions")
-    .select("*")
-    .order("createdAt", { ascending: false });
+  try {
+    const { data, error } = await supabaseClient
+      .from("transactions")
+      .select("*")
+      .order("createdAt", { ascending: false });
 
-  if(error){
-    alert("ডেটা লোড করতে সমস্যা হয়েছে: " + error.message);
+    if(error){
+      console.error("Supabase Error:", error);
+      $("loadingStatus").textContent = "❌ সিঙ্ক ব্যর্থ";
+    } else {
+      transactions = data || [];
+      $("loadingStatus").textContent = "✅ লাইভ সিঙ্কড";
+      renderReport();
+    }
+  } catch(err) {
+    console.error("Network Error:", err);
     $("loadingStatus").textContent = "❌ সিঙ্ক ব্যর্থ";
-  } else {
-    transactions = data || [];
-    $("loadingStatus").textContent = "✅ লাইভ সিঙ্কড";
-    renderReport();
   }
 }
 
-// বর্তমান তারিখ ও সময় ISO Local format এ পাওয়া (datetime-local ইনপুটের জন্য)
+// বর্তমান তারিখ ও সময় ISO Local format এ পাওয়া
 function currentDateTimeLocal(){
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -377,17 +382,14 @@ function formatDateTime(dateTimeStr) {
   const d = new Date(dateTimeStr);
   if (isNaN(d.getTime())) return dateTimeStr;
 
-  // তারিখের অংশ (যেমন: ০৩ সেপ্টেম্বর, ২০২৬)
   const dateStr = d.toLocaleDateString("bn-BD", {
     day: "2-digit",
     month: "long",
     year: "numeric"
   });
 
-  // বারের অংশ (যেমন: শনিবার)
   const dayName = d.toLocaleDateString("bn-BD", { weekday: "long" });
 
-  // সময়ের অংশ (যেমন: ০৭:৩৫ PM)
   const timeStr = d.toLocaleTimeString("bn-BD", {
     hour: "2-digit",
     minute: "2-digit",
@@ -696,7 +698,7 @@ loadDropdowns();
 fetchTransactionsFromDB();
 
 /* ==========================================================
-   ৩. PWA SERVICE WORKER REGISTRATION (Inline)
+   ৩. PWA SERVICE WORKER REGISTRATION
    ========================================================== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
