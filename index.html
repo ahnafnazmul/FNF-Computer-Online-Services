@@ -1,1332 +1,290 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0f766e">
-<title>FNF Computer & Online Services</title>
-
-<!-- PWA & Mobile Web App Meta Tags -->
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FNF Hisab">
-<meta name="application-name" content="FNF Hisab">
-
-<!-- Supabase CDN JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- HTML2Canvas CDN JS (ছবি হিসেবে ডাউনলোড করার জন্য) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<style>
-*{box-sizing:border-box}
-:root{
-  --primary:#0f766e;
-  --primary-dark:#115e59;
-  --bg:#f1f5f9;
-  --card:#fff;
-  --text:#0f172a;
-  --muted:#64748b;
-  --border:#dbe2ea;
-  --danger:#dc2626;
-  --success:#15803d;
-  --memo-blue: #0056b3;
-}
-body{
-  margin:0;
-  font-family:Arial,"Noto Sans Bengali",sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-header{
-  background:linear-gradient(135deg,#115e59,#0f766e);
-  color:#fff;
-  padding:18px 24px;
-  text-align:center;
-  box-shadow:0 2px 10px #0001;
-}
-header h1{margin:0;font-size:24px}
-header p{margin:5px 0 0;font-size:14px;color:#d1fae5}
-
-/* ২-কলামের মূল লেআউট (ডেস্কটপে বামে মূল সিস্টেম, ডানে ক্যালকুলেটর ও মেমো) */
-.app-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  max-width: 1600px;
-  margin: auto;
-  padding: 16px 24px;
-}
-
-@media (min-width: 1024px) {
-  .app-layout {
-    grid-template-columns: 1fr 380px;
-  }
-}
-
-nav{
-  display:flex;gap:10px;overflow-x:auto;
-  background:#fff;padding:10px;border-radius:10px;
-  box-shadow:0 1px 5px #0001;margin-bottom:16px;
-  align-items: center;
-}
-nav button{
-  min-width:120px;border:0;border-radius:7px;
-  padding:12px 16px;background:#e2e8f0;color:#334155;
-  cursor:pointer;font-size:15px;font-weight:600;white-space:nowrap;
-}
-nav button.active{background:var(--primary);color:#fff}
-.page{display:none}
-.page.active{display:block}
-
-.card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:20px;margin-bottom:16px;
-  box-shadow:0 2px 8px #00000008;
-}
-.card h2,.card h3{font-size:18px;margin:0 0 14px}
-
-.grid{
-  display:grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap:16px;
-}
-
-@media(min-width: 640px){
-  .grid{
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.grid-4{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap:16px;
-}
-
-label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
-input,select,textarea{
-  width:100%;padding:10px;border:1px solid #cbd5e1;
-  border-radius:7px;background:#fff;font-size:14px;
-  outline:none;
-}
-input:focus,select:focus,textarea:focus{border-color:var(--primary)}
-textarea{min-height:80px;resize:vertical}
-.full{grid-column:1/-1}
-
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-button{border:0;border-radius:7px;padding:10px 16px;cursor:pointer;font-size:14px;font-weight:600}
-.btn-primary{background:var(--primary);color:#fff}
-.btn-primary:hover{background:var(--primary-dark)}
-.btn-danger{background:var(--danger);color:#fff}
-.btn-light{background:#e2e8f0;color:#334155}
-.btn-success{background:var(--success);color:#fff}
-
-.type-switch{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;max-width:500px;
-}
-.type-switch button{background:#e2e8f0;color:#334155}
-.type-switch button.active-income{background:#15803d;color:#fff}
-.type-switch button.active-expense{background:#dc2626;color:#fff}
-
-.bn-preview {
-  display: block;
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--primary);
-  font-weight: bold;
-}
-
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:650px}
-th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
-th{background:#f8fafc}
-.amount-income{color:var(--success);font-weight:700}
-.amount-expense{color:var(--danger);font-weight:700}
-.empty{text-align:center;color:var(--muted);padding:25px}
-
-.report-summary{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;
-}
-.summary-box{border-radius:9px;padding:12px;color:#fff}
-.summary-box small{display:block;opacity:.9;margin-bottom:4px;font-size:12px}
-.summary-box strong{font-size:20px}
-.income-bg{background:#15803d}
-.expense-bg{background:#dc2626}
-.balance-bg{background:#2563eb}
-
-.breakdown-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;
-}
-.breakdown-card{
-  background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;
-}
-.breakdown-card h4{margin:0 0 10px;font-size:14px;color:var(--primary-dark)}
-.breakdown-list{list-style:none;padding:0;margin:0;font-size:13px}
-.breakdown-list li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #cbd5e1}
-.breakdown-list li:last-child{border-bottom:0}
-
-#loadingStatus{
-  font-size:14px;color:var(--primary);font-weight:bold;margin-left:auto;align-self:center;
-}
-
-/* ================= WINDOWS CALCULATOR UI ================= */
-.win-calc {
-  background: #f3f3f3;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid #e5e5e5;
-}
-.win-calc-header {
-  font-size: 13px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.win-calc-display {
-  background: #f9f9f9;
-  text-align: right;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-.win-calc-history {
-  font-size: 12px;
-  color: #666;
-  min-height: 16px;
-}
-.win-calc-main {
-  font-size: 32px;
-  font-weight: bold;
-  color: #111;
-  word-wrap: break-word;
-}
-.win-calc-memory {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 2px;
-  margin-bottom: 6px;
-}
-.win-calc-memory button {
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  padding: 4px 0;
-  color: #666;
-}
-.win-calc-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 3px;
-}
-.win-calc-btn {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
-  border-radius: 4px;
-  padding: 12px 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a1a1a;
-  cursor: pointer;
-  transition: all 0.1s;
-}
-.win-calc-btn:hover { background: #e9e9e9; }
-.win-calc-btn.op-btn { background: #f9f9f9; color: #000; }
-.win-calc-btn.eq-btn { background: #005a9e; color: #fff; }
-.win-calc-btn.eq-btn:hover { background: #004578; }
-
-/* ================= CASH MEMO INPUT FORM ================= */
-.memo-item-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr auto;
-  gap: 6px;
-  margin-bottom: 6px;
-  align-items: center;
-}
-.memo-item-row input { padding: 6px; font-size: 13px; }
-.memo-total-bar {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  font-size: 15px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-}
-
-/* ================= 21.3cm x 14.2cm MEMO PRINT / PHOTO CONTAINER ================= */
-#memoWrapper {
-  display: none; /* পেজে দেখা যাবে না, প্রিন্ট/ডাউনলোডের সময় ব্যবহার হবে */
-}
-
-/* মেমোর মূল বডি - নির্দিষ্ট মাপ ২১.৩ সেমি * ১৪.২ সেমি */
-.memo-card-printable {
-  width: 21.3cm;
-  height: 14.2cm;
-  background: #ffffff;
-  padding: 0.6cm 0.8cm;
-  box-sizing: border-box;
-  font-family: Arial, "Noto Sans Bengali", sans-serif;
-  color: #000;
-  position: relative;
-  border: 1px solid #ccc;
-  margin: auto;
-}
-
-.memo-header-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  font-weight: bold;
-}
-.memo-title-badge {
-  text-align: center;
-}
-.memo-title-badge span {
-  border: 2px solid #0056b3;
-  color: #0056b3;
-  font-weight: bold;
-  padding: 2px 14px;
-  border-radius: 12px;
-  font-size: 16px;
-  display: inline-block;
-}
-.shop-title-main {
-  text-align: center;
-  color: #0056b3;
-  font-size: 26px;
-  font-weight: 900;
-  margin: 4px 0;
-  letter-spacing: 0.5px;
-}
-.shop-sub-details {
-  text-align: center;
-  font-size: 11px;
-  color: #111;
-  margin-bottom: 4px;
-}
-.shop-address-badge {
-  text-align: center;
-  margin-bottom: 8px;
-}
-.shop-address-badge span {
-  background: #0056b3;
-  color: #fff;
-  padding: 3px 15px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.memo-meta-grid {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-.memo-dots {
-  border-bottom: 1px dotted #000;
-  display: inline-block;
-  min-width: 200px;
-}
-
-.date-box-wrap {
-  display: inline-flex;
-  border: 1px solid #0056b3;
-}
-.date-box-wrap div {
-  width: 22px;
-  height: 20px;
-  border-right: 1px solid #0056b3;
-  text-align: center;
-  line-height: 20px;
-  font-size: 12px;
-}
-.date-box-wrap div:last-child { border-right: none; }
-
-/* মেমো টেবিল ডিজাইন (ছবি অনুযায়ী ব্লু বর্ডার) */
-.memo-main-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 2px solid #0056b3;
-  margin-bottom: 8px;
-}
-.memo-main-table th {
-  background: #0056b3;
-  color: #fff;
-  border: 1px solid #0056b3;
-  padding: 4px;
-  font-size: 13px;
-}
-.memo-main-table td {
-  border-right: 1px solid #0056b3;
-  border-bottom: 1px solid #0056b3;
-  padding: 4px 6px;
-  font-size: 12px;
-  height: 22px;
-}
-.memo-main-table td:last-child { border-right: none; }
-
-.memo-footer-area {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  font-size: 12px;
-  margin-top: 15px;
-}
-.memo-signatures {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  position: absolute;
-  bottom: 0.5cm;
-  left: 0;
-  padding: 0 0.8cm;
-  box-sizing: border-box;
-}
-.sig-line {
-  border-top: 1px dashed #000;
-  width: 140px;
-  text-align: center;
-  padding-top: 4px;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
-
-@media print {
-  body * { visibility: hidden; }
-  #memoWrapper, #memoWrapper * { visibility: visible; }
-  #memoWrapper {
-    display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-  }
-  @page {
-    size: 21.3cm 14.2cm;
-    margin: 0;
-  }
-}
-</style>
-</head>
-
-<body>
-<header>
-  <h1 id="hdrShopName">FNF Computer & Online Services</h1>
-  <p id="hdrShopSub">Banglabazar Road, Barishal.</p>
-</header>
-
-<div class="app-layout">
-  
-  <!-- বাম পাশ: মূল সিস্টেম (ইনপুট ও রিপোর্ট) -->
-  <main class="main-content">
-    <nav>
-      <button class="tab active" data-page="home">আয়-ব্যয় যোগ</button>
-      <button class="tab" data-page="report">রিপোর্ট</button>
-      <span id="loadingStatus">🔄 লোড হচ্ছে...</span>
-    </nav>
-
-    <!-- HOME PAGE -->
-    <section id="home" class="page active">
-      <div class="card">
-        <h2>হিসাব যোগ করুন</h2>
-
-        <div class="type-switch">
-          <button id="incomeMode" class="active-income" type="button">➕ আয় যোগ করুন</button>
-          <button id="expenseMode" type="button">➖ সাধারণ ব্যয় (দোকান)</button>
-        </div>
-
-        <form id="transactionForm">
-          <div class="grid">
-            <div>
-              <label>তারিখ ও সময়</label>
-              <input type="datetime-local" id="date" required>
-              <span id="bnDatePreview" class="bn-preview"></span>
-            </div>
-
-            <div id="staffBlock">
-              <label id="staffLabel">স্টাফ (কাজ করেছেন)</label>
-              <select id="staff"></select>
-            </div>
-
-            <div>
-              <label id="typeLabel">আয়ের ধরন</label>
-              <select id="transactionType" required></select>
-            </div>
-
-            <div id="incomeAmountBlock">
-              <label id="amountLabel">কাজের মোট বিল (আয়)</label>
-              <input type="number" id="amount" min="0" step="0.01" placeholder="যেমন: 500" required>
-            </div>
-
-            <div id="jobCostBlock">
-              <label>কাজের খরচ (যদি থাকে)</label>
-              <input type="number" id="jobCost" min="0" step="0.01" placeholder="যেমন: 100">
-            </div>
-
-            <div class="full">
-              <label>বিবরণ / কাজের নাম</label>
-              <textarea id="details" placeholder="প্রয়োজনে কাজ বা লেনদেনের বিবরণ লিখুন"></textarea>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="btn-primary" type="submit" id="saveBtn">আয় সংরক্ষণ করুন</button>
-            <button class="btn-light" type="reset">ফর্ম পরিষ্কার</button>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- REPORT PAGE -->
-    <section id="report" class="page">
-      <div class="card">
-        <h2>আয়-ব্যয় ফিল্টার ও রিপোর্ট</h2>
-
-        <div class="grid-4">
-          <div>
-            <label>শুরু তারিখ</label>
-            <input type="date" id="fromDate">
-          </div>
-          <div>
-            <label>শেষ তারিখ</label>
-            <input type="date" id="toDate">
-          </div>
-          <div>
-            <label>ফিল্টার: স্টাফ</label>
-            <select id="filterStaff">
-              <option value="">সকল স্টাফ</option>
-            </select>
-          </div>
-          <div>
-            <label>ফিল্টার: ধরন/খাত</label>
-            <select id="filterType">
-              <option value="">সকল খাত/ধরন</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn-primary" id="showReport">রিপোর্ট দেখুন</button>
-          <button class="btn-success" id="downloadCsv">CSV ডাউনলোড</button>
-        </div>
-
-        <div class="report-summary">
-          <div class="summary-box income-bg">
-            <small>মোট নিট আয়</small>
-            <strong id="totalIncome">৳ 0</strong>
-          </div>
-          <div class="summary-box expense-bg">
-            <small>মোট ব্যয়</small>
-            <strong id="totalExpense">৳ 0</strong>
-          </div>
-          <div class="summary-box balance-bg">
-            <small>অবশিষ্ট লাভ</small>
-            <strong id="totalBalance">৳ 0</strong>
-          </div>
-        </div>
-
-        <div class="breakdown-grid">
-          <div class="breakdown-card">
-            <h4>👤 স্টাফের চূড়ান্ত নিট আয়</h4>
-            <ul id="staffBreakdown" class="breakdown-list">
-              <li><span>কোনো তথ্য নেই</span></li>
-            </ul>
-          </div>
-          <div class="breakdown-card">
-            <h4>💸 খাত অনুযায়ী ব্যয়</h4>
-            <ul id="expenseBreakdown" class="breakdown-list">
-              <li><span>কোনো তথ্য নেই</span></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>তারিখ ও সময়</th>
-                <th>ধরন</th>
-                <th>স্টাফ</th>
-                <th>ক্যাটাগরি</th>
-                <th>বিবরণ</th>
-                <th>বিল/খরচ</th>
-                <th>নিট পরিমাণ</th>
-                <th>অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody id="reportBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ডান পাশ: ক্যালকুলেটর এবং ক্যাশ মেমো -->
-  <aside class="sidebar-tools">
-    
-    <!-- WINDOWS CALCULATOR -->
-    <div class="card">
-      <div class="win-calc">
-        <div class="win-calc-header">
-          <span>☰</span> Standard Calculator
-        </div>
-        <div class="win-calc-display">
-          <div id="winCalcHistory" class="win-calc-history"></div>
-          <div id="winCalcDisplay" class="win-calc-main">0</div>
-        </div>
-        <div class="win-calc-memory">
-          <button disabled>MC</button>
-          <button disabled>MR</button>
-          <button disabled>M+</button>
-          <button disabled>M-</button>
-          <button disabled>MS</button>
-          <button disabled>M▾</button>
-        </div>
-        <div class="win-calc-grid">
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('%')">%</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcClearEntry()">CE</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcClear()">C</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcBackspace()">⌫</button>
-
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('1/x')">1/x</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqr')">x²</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqrt')">√x</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('/')">÷</button>
-
-          <button class="win-calc-btn" onclick="winCalcNum('7')">7</button>
-          <button class="win-calc-btn" onclick="winCalcNum('8')">8</button>
-          <button class="win-calc-btn" onclick="winCalcNum('9')">9</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('*')">×</button>
-
-          <button class="win-calc-btn" onclick="winCalcNum('4')">4</button>
-          <button class="win-calc-btn" onclick="winCalcNum('5')">5</button>
-          <button class="win-calc-btn" onclick="winCalcNum('6')">6</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('-')">-</button>
-
-          <button class="win-calc-btn" onclick="winCalcNum('1')">1</button>
-          <button class="win-calc-btn" onclick="winCalcNum('2')">2</button>
-          <button class="win-calc-btn" onclick="winCalcNum('3')">3</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('+')">+</button>
-
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('+/-')">+/-</button>
-          <button class="win-calc-btn" onclick="winCalcNum('0')">0</button>
-          <button class="win-calc-btn" onclick="winCalcNum('.')">.</button>
-          <button class="win-calc-btn eq-btn" onclick="winCalcEquals()">=</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- CASH MEMO GENERATOR FORM -->
-    <div class="card">
-      <h3>🧾 ক্যাশ মেমো জেনারেটর</h3>
-      <div style="display:grid; gap:8px; margin-bottom:10px;">
-        <input type="text" id="custMemoNo" placeholder="মেমো নম্বর (যেমন: 153)">
-        <input type="text" id="custName" placeholder="গ্রাহকের নাম">
-        <input type="text" id="custAddress" placeholder="ঠিকানা">
-        <input type="date" id="custDate">
-      </div>
-      
-      <div id="memoItemsContainer">
-        <div class="memo-item-row">
-          <input type="text" placeholder="কাজের বিবরণ" class="m-desc">
-          <input type="number" placeholder="পরিমাণ" class="m-qty" value="1" oninput="updateMemoTotal()">
-          <input type="number" placeholder="দর" class="m-price" value="0" oninput="updateMemoTotal()">
-          <button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.remove(); updateMemoTotal();">✕</button>
-        </div>
-      </div>
-
-      <button class="btn-light" style="width:100%; margin-top:6px;" onclick="addMemoItem()">+ আইটেম যোগ করুন</button>
-
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
-        <div>
-          <label style="font-size:12px">জমা (টাকা):</label>
-          <input type="number" id="memoPaid" value="0" oninput="updateMemoTotal()">
-        </div>
-        <div>
-          <label style="font-size:12px">বাকি (টাকা):</label>
-          <input type="number" id="memoDue" value="0" readonly>
-        </div>
-      </div>
-
-      <div class="memo-total-bar">
-        <span>মোট বিল:</span>
-        <span id="memoTotalText">৳ 0</span>
-      </div>
-
-      <div class="actions" style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <button class="btn-primary" onclick="generateAndPrintMemo()">🖨️ প্রিন্ট করুন</button>
-        <button class="btn-success" onclick="downloadMemoImage()">🖼️ ফটো ডাউনলোড</button>
-      </div>
-    </div>
-
-  </aside>
-
-</div>
-
-<!-- ২১.৩ সেমি * ১৪.২ সেমি হিডেন মেমো টেমপ্লেট (প্রিন্ট ও ফটো ডাউনলোডের জন্য) -->
-<div id="memoWrapper">
-  <div class="memo-card-printable" id="memoPrintArea">
-    
-    <div class="memo-header-top">
-      <div><span id="mBismillah">বিসমিল্লাহির রহমানির রহীম</span></div>
-      <div class="memo-title-badge"><span>ক্যাশ মেমো</span></div>
-      <div style="text-align:right;">
-        <div id="mProp">প্রোঃ মোঃ কামরুল হাসান</div>
-        <div id="mPhone1">📱 01712-764142</div>
-      </div>
-    </div>
-
-    <div class="shop-title-main" id="mShopName">এফ.এন.এফ টেলিকম এন্ড ভ্যারাইটিজ</div>
-    <div class="shop-sub-details" id="mSubDetails">
-      অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি তোলা হয়, ছবি থেকে ছবি, ইলেকট্রনিক্স, ইলেকট্রিক, স্টেশনেরী মালামাল পাওয়া যায়।
-      <br>Email: <span id="mEmail">fnf.barisal@gmail.com</span> | Agent: <span id="mPhone2">01913-866688</span>
-    </div>
-
-    <div class="shop-address-badge">
-      <span id="mAddress"> শহীদ নজরুল ইসলাম সড়ক, বাংলাবাজার, বরিশাল। </span>
-    </div>
-
-    <div class="memo-meta-grid">
-      <div>নং- <span id="pMemoNo" style="font-size:16px; color:#d9534f;">153</span></div>
-      <div>
-        তারিখঃ 
-        <div class="date-box-wrap" id="pDateBoxes">
-          <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
-        </div>
-      </div>
-    </div>
-
-    <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">
-      নাম ঃ <span id="pCustName" class="memo-dots"></span><br>
-      ঠিকানা ঃ <span id="pCustAddress" class="memo-dots" style="min-width:300px;"></span>
-    </div>
-
-    <!-- মেমো টেবিল -->
-    <table class="memo-main-table">
-      <thead>
-        <tr>
-          <th style="width: 8%;">নং</th>
-          <th style="width: 52%;">মালের বিবরণ</th>
-          <th style="width: 12%;">পরিমাণ</th>
-          <th style="width: 13%;">দর</th>
-          <th style="width: 15%;">টাকা</th>
-        </tr>
-      </thead>
-      <tbody id="pMemoTableBody">
-        <!-- জাভাস্ক্রিপ্ট দ্বারা ৮-১০টি রো অটো পূরণ হবে -->
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="3" rowspan="3" style="vertical-align: top; font-weight: bold;">
-            কথায় ঃ <span id="pInWords"></span>
-          </td>
-          <td style="font-weight: bold; text-align: right; background:#f0f4f8;">মোট =</td>
-          <td id="pTotal" style="font-weight: bold; text-align: right;">0</td>
-        </tr>
-        <tr>
-          <td style="font-weight: bold; text-align: right; background:#f0f4f8;">জমা =</td>
-          <td id="pPaid" style="font-weight: bold; text-align: right;">0</td>
-        </tr>
-        <tr>
-          <td style="font-weight: bold; text-align: right; background:#f0f4f8;">বাকি =</td>
-          <td id="pDue" style="font-weight: bold; text-align: right;">0</td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div class="memo-signatures">
-      <div class="sig-line">ক্রেতার স্বাক্ষর</div>
-      <div class="sig-line">বিক্রেতার স্বাক্ষর</div>
-    </div>
-
-  </div>
-</div>
-
-<footer>Developed by @NAZMULSBLOG</footer>
-
-<script>
-/* ==========================================================
-   ০. ক্যাশ মেমো তথ্য পরিবর্তন করার কনফিগারেশন (EDIT HERE)
-   ========================================================== */
-const MEMO_CONFIG = {
-  bismillah: "বিসমিল্লাহির রহমানির রহীম",
-  shopName: "এফ.এন.এফ টেলিকম এন্ড ভ্যারাইটিজ",
-  proprietor: "প্রোঃ মোঃ কামরুল হাসান",
-  phone1: "01712-764142",
-  phone2: "01533-199800 (দোকান)",
-  email: "fnf.barisal@gmail.com",
-  services: "অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি সকল কাজ করা হয়।",
-  address: "শহীদ নজরুল ইসলাম সড়ক, বাংলাবাজার, বরিশাল।"
-};
-
-// মেমো কনফিগারেশন সেট করা
-function applyMemoConfig() {
-  document.getElementById("mBismillah").textContent = MEMO_CONFIG.bismillah;
-  document.getElementById("mShopName").textContent = MEMO_CONFIG.shopName;
-  document.getElementById("mProp").textContent = MEMO_CONFIG.proprietor;
-  document.getElementById("mPhone1").textContent = "📱 " + MEMO_CONFIG.phone1;
-  document.getElementById("mPhone2").textContent = MEMO_CONFIG.phone2;
-  document.getElementById("mEmail").textContent = MEMO_CONFIG.email;
-  document.getElementById("mAddress").textContent = MEMO_CONFIG.address;
-  document.getElementById("mSubDetails").innerHTML = `${MEMO_CONFIG.services}<br>Email: ${MEMO_CONFIG.email} | Agent: ${MEMO_CONFIG.phone2}`;
-  
-  // হেডার ডায়নামিক করা
-  document.getElementById("hdrShopName").textContent = MEMO_CONFIG.shopName;
-  document.getElementById("hdrShopSub").textContent = MEMO_CONFIG.address;
-}
-
-/* ==========================================================
-   ১. SUPABASE কনফিগারেশন
-   ========================================================== */
-const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
-
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const CONFIG = {
-  staffList: ["কামরুল", "নাজমুল", "সিফাত", "আল-আমিন", "মাহিন"],
-  incomeTypes: ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"],
-  expenseTypes: ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"]
-};
-
-let transactions = [];
-let mode = "income";
-let currentReport = [];
-
-const $ = id => document.getElementById(id);
-
-async function fetchTransactionsFromDB(){
-  $("loadingStatus").textContent = "🔄 সিঙ্ক হচ্ছে...";
-  try {
-    const { data, error } = await supabaseClient
-      .from("transactions")
-      .select("*")
-      .order("createdAt", { ascending: false });
-
-    if(error){
-      console.error(error);
-      $("loadingStatus").textContent = "❌ ব্যর্থ";
-    } else {
-      transactions = data || [];
-      $("loadingStatus").textContent = "✅ সিঙ্কড";
-      renderReport();
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ক্যাশ মেমো - এফ.এন.এফ কম্পিউটার এন্ড অনলাইন সার্ভিসেস</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Tiro Bangla', serif;
     }
-  } catch (err) {
-    $("loadingStatus").textContent = "❌ নেটওয়ার্ক ত্রুটি";
-  }
-}
 
-function currentDateTimeLocal(){
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  return now.toISOString().slice(0, 16);
-}
-
-function today(){
-  const d = new Date();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
-
-function formatDateTime(dateTimeStr) {
-  if (!dateTimeStr) return "-";
-  const d = new Date(dateTimeStr);
-  if (isNaN(d.getTime())) return dateTimeStr;
-
-  const dateStr = d.toLocaleDateString("bn-BD", { day: "2-digit", month: "long", year: "numeric" });
-  const dayName = d.toLocaleDateString("bn-BD", { weekday: "long" });
-  const timeStr = d.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit", hour12: true });
-
-  return `${dateStr} (${dayName}) ${timeStr}`;
-}
-
-function updateBnDatePreview() {
-  const val = $("date").value;
-  $("bnDatePreview").textContent = val ? formatDateTime(val) : "";
-}
-
-function money(n){
-  return "৳ " + Number(n || 0).toLocaleString("en-BD", { minimumFractionDigits:0, maximumFractionDigits:2 });
-}
-
-function escapeHtml(value){
-  return String(value ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[c]));
-}
-
-function handleExpenseTypeChange(){
-  if(mode === "expense"){
-    const selectedType = $("transactionType").value;
-    if(selectedType === "বেতন"){
-      $("staffBlock").style.display = "block";
-      $("staffLabel").textContent = "স্টাফ (কাকে বেতন দেওয়া হলো)";
-      $("staff").required = true;
-    } else {
-      $("staffBlock").style.display = "none";
-      $("staff").required = false;
+    body {
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
     }
-  }
-}
 
-function setMode(newMode){
-  mode = newMode;
-  $("incomeMode").className = newMode === "income" ? "active-income" : "";
-  $("expenseMode").className = newMode === "expense" ? "active-expense" : "";
-  $("typeLabel").textContent = newMode === "income" ? "আয়ের ধরন" : "ব্যয়ের ধরন";
-  $("amountLabel").textContent = newMode === "income" ? "কাজের মোট বিল (আয়)" : "ব্যয়ের পরিমাণ";
-  $("saveBtn").textContent = newMode === "income" ? "আয় সংরক্ষণ করুন" : "ব্যয় সংরক্ষণ করুন";
-  $("jobCostBlock").style.display = newMode === "income" ? "block" : "none";
+    /* Portrait Cash Memo Layout */
+    .memo-container {
+      width: 148mm; /* A5 Portrait Width */
+      min-height: 210mm; /* A5 Portrait Height */
+      background: #fff;
+      padding: 12mm;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
 
-  if(newMode === "income"){
-    $("staffBlock").style.display = "block";
-    $("staffLabel").textContent = "স্টাফ (কাজ করেছেন)";
-    $("staff").required = true;
-  } else {
-    handleExpenseTypeChange();
-  }
+    /* Bismillah Section Center */
+    .bismillah {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
 
-  populateTypeDropdown();
-}
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
 
-function populateSelect(select, items, placeholder){
-  select.innerHTML = "";
-  const first = document.createElement("option");
-  first.value = ""; first.textContent = placeholder;
-  select.appendChild(first);
+    .shop-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 4px;
+    }
 
-  items.forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item; opt.textContent = item;
-    select.appendChild(opt);
-  });
-}
+    .proprietor {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
 
-function loadDropdowns(){
-  populateSelect($("staff"), CONFIG.staffList, "স্টাফ নির্বাচন করুন");
-  populateTypeDropdown();
-  populateSelect($("filterStaff"), CONFIG.staffList, "সকল স্টাফ");
-  const allTypes = Array.from(new Set([...CONFIG.incomeTypes, ...CONFIG.expenseTypes]));
-  populateSelect($("filterType"), allTypes, "সকল খাত/ধরন");
-}
+    .services {
+      font-size: 11px;
+      line-height: 1.4;
+      margin-bottom: 6px;
+      padding: 0 5px;
+    }
 
-function populateTypeDropdown(){
-  const list = mode === "income" ? CONFIG.incomeTypes : CONFIG.expenseTypes;
-  populateSelect($("transactionType"), list, mode === "income" ? "আয়ের ধরন নির্বাচন" : "ব্যয়ের ধরন নির্বাচন");
-}
+    .contact-info {
+      font-size: 11.5px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
 
-function renderReport(){
-  const from = $("fromDate").value;
-  const to = $("toDate").value;
-  const filterStaff = $("filterStaff").value;
-  const filterType = $("filterType").value;
+    .memo-title-container {
+      text-align: center;
+      margin: 10px 0;
+    }
 
-  currentReport = transactions
-    .filter(x => { 
-      const itemDate = x.date ? x.date.slice(0, 10) : "";
-      return (!from || itemDate >= from) && (!to || itemDate <= to); 
-    })
-    .filter(x => !filterStaff || x.staff === filterStaff)
-    .filter(x => !filterType || x.type === filterType)
-    .sort((a,b) => b.date.localeCompare(a.date));
+    .memo-title {
+      background: #000;
+      color: #fff;
+      padding: 3px 15px;
+      font-size: 13px;
+      border-radius: 12px;
+      display: inline-block;
+    }
 
-  let totalIncome = 0, totalExpense = 0;
-  let staffIncomeMap = {}, expenseCategoryMap = {};
+    .customer-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
 
-  currentReport.forEach(x => {
-    if(x.kind === "income") {
-      const netIncome = Number(x.amount) - Number(x.jobCost || 0);
-      totalIncome += netIncome;
-      if(x.staff) staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) + netIncome;
+    .customer-info div {
+      width: 48%;
+    }
 
-      if(x.jobCost) {
-        totalExpense += Number(x.jobCost);
-        const costKey = "কাজের খরচ (" + x.type + ")";
-        expenseCategoryMap[costKey] = (expenseCategoryMap[costKey] || 0) + Number(x.jobCost);
+    /* Table Styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+
+    table, th, td {
+      border: 1px solid #000;
+    }
+
+    th {
+      background-color: #f0f0f0;
+      padding: 6px;
+      font-size: 12.5px;
+      text-align: center;
+    }
+
+    td {
+      padding: 6px;
+      font-size: 12.5px;
+      text-align: center;
+    }
+
+    .text-left {
+      text-align: left !important;
+      padding-left: 8px;
+    }
+
+    .text-right {
+      text-align: right !important;
+      padding-right: 8px;
+    }
+
+    .in-words {
+      font-weight: bold;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .footer-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 35px;
+      padding-top: 5px;
+    }
+
+    .signature-box {
+      border-top: 1px dashed #000;
+      width: 38%;
+      text-align: center;
+      font-size: 12px;
+      padding-top: 4px;
+    }
+
+    /* Print Configuration for Portrait Page */
+    @media print {
+      body {
+        background: none;
+        padding: 0;
       }
-    } else {
-      const expenseVal = Number(x.amount);
-      totalExpense += expenseVal;
-      expenseCategoryMap[x.type] = (expenseCategoryMap[x.type] || 0) + expenseVal;
-      if(x.type === "বেতন" && x.staff) staffIncomeMap[x.staff] = (staffIncomeMap[x.staff] || 0) - expenseVal;
+      .memo-container {
+        border: none;
+        box-shadow: none;
+        width: 100%;
+        height: auto;
+        padding: 10mm;
+      }
+      @page {
+        size: A5 portrait;
+        margin: 0;
+      }
     }
-  });
+  </style>
+</head>
+<body>
 
-  $("totalIncome").textContent = money(totalIncome);
-  $("totalExpense").textContent = money(totalExpense);
-  $("totalBalance").textContent = money(totalIncome - totalExpense);
+  <div class="memo-container">
+    <div>
+      <!-- বিসমিল্লাহ (সবার উপরে মাঝখানে) -->
+      <div class="bismillah" id="bismillah"></div>
 
-  const staffUl = $("staffBreakdown"); staffUl.innerHTML = "";
-  if(!Object.keys(staffIncomeMap).length){
-    staffUl.innerHTML = "<li><span>কোনো তথ্য নেই</span></li>";
-  } else {
-    for(let s in staffIncomeMap){
-      const netVal = staffIncomeMap[s];
-      staffUl.innerHTML += `<li><span>${escapeHtml(s)}</span> <strong ${netVal < 0 ? 'style="color:var(--danger)"':''}>${money(netVal)}</strong></li>`;
-    }
-  }
+      <!-- হেডার অংশ -->
+      <div class="header">
+        <div class="shop-name" id="shopName"></div>
+        <div class="proprietor" id="proprietor"></div>
+        <div class="services" id="services"></div>
+        <div class="contact-info">
+          ঠিকানা: <span id="address"></span><br>
+          মোবাইল: <span id="phone1"></span>, <span id="phone2"></span> | ইমেইল: <span id="email"></span>
+        </div>
+      </div>
 
-  const expUl = $("expenseBreakdown"); expUl.innerHTML = "";
-  if(!Object.keys(expenseCategoryMap).length){
-    expUl.innerHTML = "<li><span>কোনো তথ্য নেই</span></li>";
-  } else {
-    for(let c in expenseCategoryMap){
-      expUl.innerHTML += `<li><span>${escapeHtml(c)}</span> <strong>${money(expenseCategoryMap[c])}</strong></li>`;
-    }
-  }
+      <div class="memo-title-container">
+        <span class="memo-title">ক্যাশ মেমো</span>
+      </div>
 
-  const body = $("reportBody"); body.innerHTML = "";
-  if(!currentReport.length){
-    body.innerHTML = '<tr><td colspan="8" class="empty">এই সময়ের কোনো হিসাব পাওয়া যায়নি</td></tr>';
-    return;
-  }
+      <!-- ক্রেতার তথ্য -->
+      <div class="customer-info">
+        <div>
+          মেমো নং: <b>#১০২৪</b><br>
+          নাম: ....................................................<br>
+          ঠিকানা: ................................................
+        </div>
+        <div style="text-align: right;">
+          তারিখ: ............................<br>
+          মোবাইল: ..........................
+        </div>
+      </div>
 
-  currentReport.forEach(x => {
-    const tr = document.createElement("tr");
-    let billCostText = "-";
-    let netAmountText = money(x.amount);
+      <!-- বিবরণী টেবিল -->
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 8%;">ক্র.নং</th>
+            <th style="width: 52%;">বিবরণ</th>
+            <th style="width: 12%;">পরিমাণ</th>
+            <th style="width: 13%;">দর</th>
+            <th style="width: 15%;">টাকা</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>০১</td>
+            <td class="text-left">অনলাইন আবেদন ও প্রিন্ট</td>
+            <td>১</td>
+            <td>১৫০</td>
+            <td>১৫০/-</td>
+          </tr>
+          <tr>
+            <td>০২</td>
+            <td class="text-left">ছবি প্রিন্ট ও লেমিনেটিং</td>
+            <td>২</td>
+            <td>৫০</td>
+            <td>১০০/-</td>
+          </tr>
+          <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-right"><b>মোট টাকা:</b></td>
+            <td><b>২৫০/-</b></td>
+          </tr>
+        </tfoot>
+      </table>
 
-    if(x.kind === "income"){
-      const cost = Number(x.jobCost || 0);
-      billCostText = `বিল: ${money(x.amount)}<br><small style="color:var(--danger)">খরচ: ${money(cost)}</small>`;
-      netAmountText = money(Number(x.amount) - cost);
-    }
+      <div class="in-words">
+        কথায়: দুইশত ৫০ টাকা মাত্র।
+      </div>
+    </div>
 
-    tr.innerHTML = `<td style="white-space:nowrap;">${formatDateTime(x.date)}</td>
-      <td>${x.kind === "income" ? "আয়" : "ব্যয়"}</td>
-      <td>${escapeHtml(x.staff || "-")}</td>
-      <td>${escapeHtml(x.type)}</td>
-      <td>${escapeHtml(x.details || "-")}</td>
-      <td>${billCostText}</td>
-      <td class="${x.kind === "income" ? "amount-income" : "amount-expense"}">${netAmountText}</td>
-      <td><button class="btn-danger" onclick="deleteTransaction('${x.id}')">মুছুন</button></td>`;
-    body.appendChild(tr);
-  });
-}
+    <!-- স্বাক্ষর অংশ -->
+    <div class="footer-signatures">
+      <div class="signature-box">গ্রাহকের স্বাক্ষর</div>
+      <div class="signature-box">বিক্রেতার স্বাক্ষর</div>
+    </div>
+  </div>
 
-window.deleteTransaction = async function(id){
-  if(!confirm("এই হিসাবটি মুছে ফেলতে চান?")) return;
-  $("loadingStatus").textContent = "⏳ মোছা হচ্ছে...";
-  const { error } = await supabaseClient.from("transactions").delete().eq("id", id);
-  if(error) alert("ত্রুটি: " + error.message);
-  else await fetchTransactionsFromDB();
-};
+  <script>
+    /* ==========================================================
+       ০. ক্যাশ মেমো তথ্য পরিবর্তন করার কনফিগারেশন (EDIT HERE)
+       ========================================================== */
+    const MEMO_CONFIG = {
+      bismillah: "বিসমিল্লাহির রহমানির রহীম",
+      shopName: "এফ.এন.এফ কম্পিউটার এন্ড অনলাইন সার্ভিসেস",
+      proprietor: "প্রোঃ মোঃ কামরুল হাসান",
+      phone1: "01712-764142",
+      phone2: "01533-199800(দোকান)",
+      email: "fnf.barisal@gmail.com",
+      services: "অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি সকল কাজ করা হয়।",
+      address: "শহীদ নজরুল ইসলাম সড়ক, বাংলাবাজার, বরিশাল।"
+    };
 
-function downloadCSV(){
-  if(!currentReport.length){ alert("কোনো রিপোর্ট নেই।"); return; }
-  let csv = "তারিখ ও সময়,ধরন,স্টাফ,ক্যাটাগরি,বিবরণ,মোট বিল,কাজের খরচ,নিট পরিমাণ\n";
-  currentReport.forEach(x => {
-    const isInc = x.kind === "income";
-    const bill = isInc ? x.amount : 0;
-    const cost = isInc ? (x.jobCost || 0) : 0;
-    const row = [formatDateTime(x.date), isInc ? "আয়" : "ব্যয়", x.staff||"", x.type, x.details||"", bill, cost, isInc ? (bill-cost):x.amount]
-      .map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
-    csv += row + "\n";
-  });
-  const blob = new Blob(["\ufeff" + csv], {type:"text/csv;charset=utf-8"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-  a.download = "fnf-hisab-report.csv"; a.click();
-}
-
-/* ==========================================================
-   ২. WINDOWS CALCULATOR LOGIC
-   ========================================================== */
-let winCurrent = "0";
-let winPrev = "";
-let winOp = null;
-let winResetNext = false;
-
-function winUpdateDisplay() {
-  $("winCalcDisplay").textContent = winCurrent;
-  $("winCalcHistory").textContent = winPrev;
-}
-
-function winCalcNum(num) {
-  if (winCurrent === "0" || winResetNext) {
-    winCurrent = num === "." ? "0." : num;
-    winResetNext = false;
-  } else {
-    if (num === "." && winCurrent.includes(".")) return;
-    winCurrent += num;
-  }
-  winUpdateDisplay();
-}
-
-function winCalcOp(op) {
-  if (winOp && !winResetNext) winCalcEquals();
-  winPrev = winCurrent + " " + op;
-  winOp = op;
-  winResetNext = true;
-  winUpdateDisplay();
-}
-
-function winCalcEquals() {
-  if (!winOp || !winPrev) return;
-  let prevNum = parseFloat(winPrev.split(" ")[0]);
-  let currNum = parseFloat(winCurrent);
-  let res = 0;
-
-  switch (winOp) {
-    case '+': res = prevNum + currNum; break;
-    case '-': res = prevNum - currNum; break;
-    case '*': res = prevNum * currNum; break;
-    case '/': res = currNum !== 0 ? prevNum / currNum : "Error"; break;
-    case '%': res = (prevNum * currNum) / 100; break;
-  }
-
-  winCurrent = res.toString();
-  winPrev = "";
-  winOp = null;
-  winResetNext = true;
-  winUpdateDisplay();
-}
-
-function winCalcClear() {
-  winCurrent = "0";
-  winPrev = "";
-  winOp = null;
-  winResetNext = false;
-  winUpdateDisplay();
-}
-
-function winCalcClearEntry() {
-  winCurrent = "0";
-  winUpdateDisplay();
-}
-
-function winCalcBackspace() {
-  if (winCurrent.length > 1) {
-    winCurrent = winCurrent.slice(0, -1);
-  } else {
-    winCurrent = "0";
-  }
-  winUpdateDisplay();
-}
-
-function winCalcSpecial(type) {
-  let val = parseFloat(winCurrent);
-  if (isNaN(val)) return;
-
-  if (type === '1/x') winCurrent = (1 / val).toString();
-  else if (type === 'sqr') winCurrent = (val * val).toString();
-  else if (type === 'sqrt') winCurrent = Math.sqrt(val).toString();
-  else if (type === '+/-') winCurrent = (val * -1).toString();
-
-  winResetNext = true;
-  winUpdateDisplay();
-}
-
-/* ==========================================================
-   ৩. CASH MEMO GENERATOR & PRINT / PHOTO LOGIC
-   ========================================================== */
-function addMemoItem() {
-  const container = $("memoItemsContainer");
-  const div = document.createElement("div");
-  div.className = "memo-item-row";
-  div.innerHTML = `
-    <input type="text" placeholder="কাজের বিবরণ" class="m-desc">
-    <input type="number" placeholder="পরিমাণ" class="m-qty" value="1" oninput="updateMemoTotal()">
-    <input type="number" placeholder="দর" class="m-price" value="0" oninput="updateMemoTotal()">
-    <button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.remove(); updateMemoTotal();">✕</button>
-  `;
-  container.appendChild(div);
-}
-
-function updateMemoTotal() {
-  let total = 0;
-  const rows = document.querySelectorAll(".memo-item-row");
-  rows.forEach(r => {
-    const qty = Number(r.querySelector(".m-qty").value || 0);
-    const price = Number(r.querySelector(".m-price").value || 0);
-    total += (qty * price);
-  });
-
-  const paid = Number($("memoPaid").value || 0);
-  const due = total - paid;
-  
-  $("memoDue").value = due > 0 ? due : 0;
-  $("memoTotalText").textContent = money(total);
-}
-
-// সংখ্যাকে বাংলায় কথায় রূপান্তর করার সাধারণ ফাংশন
-function numberToBengaliWords(num) {
-  if (!num || num === 0) return "শূন্য টাকা মাত্র";
-  return num + " টাকা মাত্র";
-}
-
-function populatePrintableMemo() {
-  $("pMemoNo").textContent = $("custMemoNo").value || "153";
-  $("pCustName").textContent = $("custName").value || "নগদ গ্রাহক";
-  $("pCustAddress").textContent = $("custAddress").value || "-";
-
-  // তারিখ বক্স পূরন
-  const inputDate = $("custDate").value ? new Date($("custDate").value) : new Date();
-  const dStr = String(inputDate.getDate()).padStart(2, '0') + 
-               String(inputDate.getMonth() + 1).padStart(2, '0') + 
-               String(inputDate.getFullYear());
-  
-  const boxes = $("pDateBoxes").querySelectorAll("div");
-  for (let i = 0; i < 8; i++) {
-    boxes[i].textContent = dStr[i] || "";
-  }
-
-  // টেবিল আইটেমসমূহ
-  const pBody = $("pMemoTableBody");
-  pBody.innerHTML = "";
-  
-  let total = 0;
-  const rows = document.querySelectorAll(".memo-item-row");
-  let sl = 1;
-
-  rows.forEach(r => {
-    const desc = r.querySelector(".m-desc").value || "";
-    const qty = Number(r.querySelector(".m-qty").value || 0);
-    const price = Number(r.querySelector(".m-price").value || 0);
-    const itemTotal = qty * price;
-    total += itemTotal;
-
-    if (desc) {
-      pBody.innerHTML += `
-        <tr>
-          <td style="text-align:center;">${sl++}</td>
-          <td>${escapeHtml(desc)}</td>
-          <td style="text-align:center;">${qty}</td>
-          <td style="text-align:right;">${price}</td>
-          <td style="text-align:right;">${itemTotal}</td>
-        </tr>
-      `;
-    }
-  });
-
-  // মেমো সুন্দর দেখানোর জন্য খালি লাইন ফিল আপ
-  const minRows = 7;
-  for (let i = sl; i <= minRows; i++) {
-    pBody.innerHTML += `
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    `;
-  }
-
-  const paid = Number($("memoPaid").value || 0);
-  const due = total - paid;
-
-  $("pTotal").textContent = total;
-  $("pPaid").textContent = paid;
-  $("pDue").textContent = due > 0 ? due : 0;
-  $("pInWords").textContent = numberToBengaliWords(total);
-}
-
-function generateAndPrintMemo() {
-  populatePrintableMemo();
-  window.print();
-}
-
-function downloadMemoImage() {
-  populatePrintableMemo();
-  const memoEl = $("memoPrintArea");
-  
-  // সাময়িকভাবে মেমোটি স্ক্রিনে দেখানোর ব্যবস্থা
-  $("memoWrapper").style.display = "block";
-  
-  html2canvas(memoEl, {
-    scale: 3, // উচ্চ মান নিশ্চিত করার জন্য (300 DPI সমতুল্য)
-    useCORS: true
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = `Cash_Memo_${$("custMemoNo").value || '153'}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    
-    // পুনরায় হাইড করা
-    $("memoWrapper").style.display = "none";
-  });
-}
-
-/* ==========================================================
-   ৪. EVENT LISTENERS & INIT
-   ========================================================== */
-$("incomeMode").addEventListener("click", () => setMode("income"));
-$("expenseMode").addEventListener("click", () => setMode("expense"));
-$("transactionType").addEventListener("change", handleExpenseTypeChange);
-$("date").addEventListener("input", updateBnDatePreview);
-$("date").addEventListener("change", updateBnDatePreview);
-
-$("transactionForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
-  const item = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2,8),
-    date: $("date").value,
-    kind: mode,
-    staff: (mode === "income" || $("transactionType").value === "বেতন") ? $("staff").value : "",
-    type: $("transactionType").value,
-    amount: Number($("amount").value),
-    jobCost: mode === "income" ? Number($("jobCost").value || 0) : 0,
-    details: $("details").value.trim(),
-    createdAt: new Date().toISOString()
-  };
-
-  $("loadingStatus").textContent = "⏳ সেভ হচ্ছে...";
-  const { error } = await supabaseClient.from("transactions").insert([item]);
-
-  if(error){
-    alert("ত্রুটি: " + error.message);
-    $("loadingStatus").textContent = "❌ ব্যর্থ";
-  } else {
-    alert("সংরক্ষণ করা হয়েছে।");
-    $("transactionForm").reset();
-    $("date").value = currentDateTimeLocal();
-    updateBnDatePreview();
-    setMode(mode);
-    await fetchTransactionsFromDB();
-  }
-});
-
-$("transactionForm").addEventListener("reset", () => {
-  setTimeout(() => {
-    $("date").value = currentDateTimeLocal();
-    updateBnDatePreview();
-    setMode(mode);
-  }, 0);
-});
-
-$("showReport").addEventListener("click", renderReport);
-$("downloadCsv").addEventListener("click", downloadCSV);
-
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-    document.querySelectorAll(".page").forEach(x => x.classList.remove("active"));
-    btn.classList.add("active");
-    $(btn.dataset.page).classList.add("active");
-    if(btn.dataset.page === "report") renderReport();
-  });
-});
-
-// ইনিশিয়ালাইজেশন
-$("date").value = currentDateTimeLocal();
-$("custDate").value = today();
-updateBnDatePreview();
-$("fromDate").value = today();
-$("toDate").value = today();
-
-applyMemoConfig();
-setMode("income");
-loadDropdowns();
-fetchTransactionsFromDB();
-</script>
+    // কনফিগারেশন তথ্য HTML এ বসানো
+    document.getElementById("bismillah").innerText = MEMO_CONFIG.bismillah;
+    document.getElementById("shopName").innerText = MEMO_CONFIG.shopName;
+    document.getElementById("proprietor").innerText = MEMO_CONFIG.proprietor;
+    document.getElementById("services").innerText = MEMO_CONFIG.services;
+    document.getElementById("address").innerText = MEMO_CONFIG.address;
+    document.getElementById("phone1").innerText = MEMO_CONFIG.phone1;
+    document.getElementById("phone2").innerText = MEMO_CONFIG.phone2;
+    document.getElementById("email").innerText = MEMO_CONFIG.email;
+  </script>
 </body>
 </html>
