@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#0f766e">
 <title>FNF Computer & Online Services</title>
 
+<!-- Supabase CDN JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 *{box-sizing:border-box}
 :root{
@@ -117,6 +120,10 @@ th{background:#f8fafc}
 .breakdown-list li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #cbd5e1}
 .breakdown-list li:last-child{border-bottom:0}
 
+#loadingStatus{
+  font-size:13px;color:var(--primary);font-weight:bold;margin-left:auto;align-self:center;
+}
+
 footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 @media(max-width:700px){
   .grid,.grid-4,.report-summary,.breakdown-grid{grid-template-columns:1fr}
@@ -134,10 +141,10 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 </header>
 
 <div class="container">
-  <!-- শুধু হোম ও রিপোর্ট নেভিগেশন -->
   <nav>
     <button class="tab active" data-page="home">আয়-ব্যয় যোগ</button>
     <button class="tab" data-page="report">রিপোর্ট</button>
+    <span id="loadingStatus">🔄 লোড হচ্ছে...</span>
   </nav>
 
   <!-- HOME: INPUT ONLY -->
@@ -222,7 +229,6 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
       <div class="actions">
         <button class="btn-primary" id="showReport">রিপোর্ট দেখুন</button>
         <button class="btn-success" id="downloadCsv">CSV ডাউনলোড</button>
-        <button class="btn-danger" id="clearData">সব হিসাব মুছে দিন</button>
       </div>
 
       <div class="report-summary">
@@ -240,7 +246,6 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
         </div>
       </div>
 
-      <!-- স্টাফ ও খাত ভিত্তিক সামারি -->
       <div class="breakdown-grid">
         <div class="breakdown-card">
           <h4>👤 স্টাফের চূড়ান্ত নিট আয় (আয় - বেতন - কাজের খরচ)</h4>
@@ -283,44 +288,43 @@ footer{text-align:center;color:#64748b;font-size:12px;padding:18px 5px}
 
 <script>
 /* ==========================================================
-   ক্যাটাগরি ও সেটিংস কনফিগ (প্রয়োজন অনুযায়ী নিচে পরিবর্তন করুন)
+   ১. SUPABASE কনফিগারেশন (আপনার তথ্য দিয়ে আপডেট করা হয়েছে)
+   ========================================================== */
+const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ==========================================================
+   ২. ক্যাটাগরি ও স্টাফ কনফিগ
    ========================================================== */
 const CONFIG = {
-  // ১. স্টাফের নামসমূহ
-  staffList: [
-    "স্টাফ ১",
-    "স্টাফ ২"
-  ],
-
-  // ২. আয়ের ধরন / ক্যাটাগরি
-  incomeTypes: [
-    "অনলাইন আবেদন",
-    "কম্পিউটার কাজ",
-    "প্রিন্ট",
-    "ফটোকপি",
-    "অন্যান্য"
-  ],
-
-  // ৩. ব্যয়ের ধরন / ক্যাটাগরি
-  expenseTypes: [
-    "বেতন",
-    "দোকান ভাড়া",
-    "বিদ্যুৎ বিল",
-    "ইন্টারনেট বিল",
-    "স্টেশনারি",
-    "অন্যান্য"
-  ]
+  staffList: ["স্টাফ ১", "স্টাফ ২"],
+  incomeTypes: ["অনলাইন আবেদন", "কম্পিউটার কাজ", "প্রিন্ট", "ফটোকপি", "অন্যান্য"],
+  expenseTypes: ["বেতন", "দোকান ভাড়া", "বিদ্যুৎ বিল", "ইন্টারনেট বিল", "স্টেশনারি", "অন্যান্য"]
 };
 
-const KEY_TRANSACTIONS = "fnf_transactions_v3";
-let transactions = JSON.parse(localStorage.getItem(KEY_TRANSACTIONS) || "[]");
+let transactions = [];
 let mode = "income";
 let currentReport = [];
 
 const $ = id => document.getElementById(id);
 
-function saveTransactions(){
-  localStorage.setItem(KEY_TRANSACTIONS, JSON.stringify(transactions));
+async function fetchTransactionsFromDB(){
+  $("loadingStatus").textContent = "🔄 তথ্য সিঙ্ক হচ্ছে...";
+  const { data, error } = await supabaseClient
+    .from('transactions')
+    .select('*')
+    .order('createdAt', { ascending: false });
+
+  if(error){
+    alert("ডেটা লোড করতে সমস্যা হয়েছে: " + error.message);
+    $("loadingStatus").textContent = "❌ সিঙ্ক ব্যর্থ";
+  } else {
+    transactions = data || [];
+    $("loadingStatus").textContent = "✅ লাইভ সিঙ্কড";
+    renderReport();
+  }
 }
 
 function today(){
@@ -509,11 +513,17 @@ function renderReport(){
   });
 }
 
-window.deleteTransaction = function(id){
+window.deleteTransaction = async function(id){
   if(!confirm("এই হিসাবটি মুছে ফেলতে চান?")) return;
-  transactions = transactions.filter(x => x.id !== id);
-  saveTransactions();
-  renderReport();
+  
+  $("loadingStatus").textContent = "⏳ মোছা হচ্ছে...";
+  const { error } = await supabaseClient.from('transactions').delete().eq('id', id);
+
+  if(error){
+    alert("মুছতে সমস্যা হয়েছে: " + error.message);
+  } else {
+    await fetchTransactionsFromDB();
+  }
 };
 
 function downloadCSV(){
@@ -555,7 +565,7 @@ $("incomeMode").addEventListener("click", () => setMode("income"));
 $("expenseMode").addEventListener("click", () => setMode("expense"));
 $("transactionType").addEventListener("change", handleExpenseTypeChange);
 
-$("transactionForm").addEventListener("submit", e => {
+$("transactionForm").addEventListener("submit", async e => {
   e.preventDefault();
 
   const item = {
@@ -570,13 +580,19 @@ $("transactionForm").addEventListener("submit", e => {
     createdAt: new Date().toISOString()
   };
 
-  transactions.push(item);
-  saveTransactions();
+  $("loadingStatus").textContent = "⏳ সেভ হচ্ছে...";
+  const { error } = await supabaseClient.from('transactions').insert([item]);
 
-  alert(mode === "income" ? "আয় সংরক্ষণ হয়েছে।" : "ব্যয় সংরক্ষণ হয়েছে।");
-  $("transactionForm").reset();
-  $("date").value = today();
-  setMode(mode);
+  if(error){
+    alert("সেভ করতে সমস্যা হয়েছে: " + error.message);
+    $("loadingStatus").textContent = "❌ সেভ ব্যর্থ";
+  } else {
+    alert(mode === "income" ? "আয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।" : "ব্যয় অনলাইন ডাটাবেজে সংরক্ষণ হয়েছে।");
+    $("transactionForm").reset();
+    $("date").value = today();
+    setMode(mode);
+    await fetchTransactionsFromDB();
+  }
 });
 
 $("transactionForm").addEventListener("reset", () => {
@@ -588,14 +604,6 @@ $("transactionForm").addEventListener("reset", () => {
 
 $("showReport").addEventListener("click", renderReport);
 $("downloadCsv").addEventListener("click", downloadCSV);
-
-$("clearData").addEventListener("click", () => {
-  if(!confirm("সব হিসাব মুছে ফেলতে চান?")) return;
-  transactions = [];
-  saveTransactions();
-  renderReport();
-  alert("সব হিসাব মুছে ফেলা হয়েছে।");
-});
 
 document.querySelectorAll(".tab").forEach(button => {
   button.addEventListener("click", () => {
@@ -614,7 +622,7 @@ $("toDate").value = today();
 
 setMode("income");
 loadDropdowns();
-renderReport();
+fetchTransactionsFromDB();
 </script>
 </body>
 </html>
