@@ -15,7 +15,7 @@
 
 <!-- Supabase CDN JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- HTML2Canvas CDN JS (ছবি হিসেবে ডাউনলোড করার জন্য) -->
+<!-- HTML2Canvas CDN JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
@@ -38,15 +38,117 @@ body{
   background:var(--bg);
   color:var(--text);
 }
+
+/* AUTH / LOGIN SCREEN STYLES */
+#loginOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #115e59, #0f766e);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 16px;
+}
+.login-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  text-align: center;
+}
+.login-card h2 {
+  margin: 0 0 6px;
+  color: var(--primary-dark);
+  font-size: 22px;
+}
+.login-card p {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.login-form .input-group {
+  text-align: left;
+  margin-bottom: 14px;
+}
+.login-form label {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  display: block;
+}
+.login-form input, .login-form select {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+.login-form input:focus, .login-form select:focus {
+  border-color: var(--primary);
+}
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.login-btn:hover { background: var(--primary-dark); }
+#loginError {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 10px;
+  font-weight: bold;
+  display: none;
+}
+
+/* MAIN APP STYLES */
+#mainApp {
+  display: none; /* সহিহ লগইনের পর দৃশ্যমান হবে */
+}
+
 header{
   background:linear-gradient(135deg,#115e59,#0f766e);
   color:#fff;
-  padding:18px 24px;
-  text-align:center;
+  padding:16px 24px;
   box-shadow:0 2px 10px #0001;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-header h1{margin:0;font-size:24px}
-header p{margin:5px 0 0;font-size:14px;color:#d1fae5}
+header .header-info { text-align: left; }
+header h1{margin:0;font-size:22px}
+header p{margin:3px 0 0;font-size:13px;color:#d1fae5}
+.user-badge {
+  background: rgba(255,255,255,0.15);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-logout {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
 
 .app-layout {
   display: grid;
@@ -278,7 +380,6 @@ th{background:#f8fafc}
   justify-content: space-between;
 }
 
-/* বিসমিল্লাহ সবার উপরে মাঝখানে */
 .bismillah-top {
   text-align: center;
   font-size: 12px;
@@ -422,258 +523,302 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
 </head>
 
 <body>
-<header>
-  <h1 id="hdrShopName">FNF Computer & Online Services</h1>
-  <p id="hdrShopSub">Banglabazar Road, Barishal.</p>
-</header>
 
-<div class="app-layout">
-  
-  <!-- বাম পাশ: মূল সিস্টেম (ইনপুট ও রিপোর্ট) -->
-  <main class="main-content">
-    <nav>
-      <button class="tab active" data-page="home">আয়-ব্যয় যোগ</button>
-      <button class="tab" data-page="report">রিপোর্ট</button>
-      <span id="loadingStatus">🔄 লোড হচ্ছে...</span>
-    </nav>
+<!-- ================= 0. LOGIN OVERLAY ================= -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <h2>🔒 লগইন করুন</h2>
+    <p>FNF Computer & Online Services</p>
+    
+    <form id="loginForm" class="login-form">
+      <div class="input-group">
+        <label>ব্যবহারকারী (User ID):</label>
+        <select id="loginUser" required>
+          <option value="">ব্যবহারকারী নির্বাচন করুন</option>
+          <option value="কামরুল">কামরুল</option>
+          <option value="নাজমুল">নাজমুল</option>
+          <option value="সিফাত">সিফাত</option>
+          <option value="আল-আমিন">আল-আমিন</option>
+          <option value="মাহিন">মাহিন</option>
+        </select>
+      </div>
 
-    <!-- HOME PAGE -->
-    <section id="home" class="page active">
-      <div class="card">
-        <h2>হিসাব যোগ করুন</h2>
+      <div class="input-group">
+        <label>পাসওয়ার্ড (Password):</label>
+        <input type="password" id="loginPass" placeholder="পাসওয়ার্ড লিখুন" required>
+      </div>
 
-        <div class="type-switch">
-          <button id="incomeMode" class="active-income" type="button">➕ আয় যোগ করুন</button>
-          <button id="expenseMode" type="button">➖ সাধারণ ব্যয় (দোকান)</button>
+      <button type="submit" class="login-btn">প্রবেশ করুন ➔</button>
+      <div id="loginError">❌ ভুল ইউজার বা পাসওয়ার্ড!</div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= MAIN APP CONTAINER ================= -->
+<div id="mainApp">
+
+  <header>
+    <div class="header-info">
+      <h1 id="hdrShopName">FNF Computer & Online Services</h1>
+      <p id="hdrShopSub">Banglabazar Road, Barishal.</p>
+    </div>
+    <div class="user-badge">
+      <span>👤 ইউজার: <strong id="loggedInUserText">কামরুল</strong></span>
+      <button class="btn-logout" onclick="logout()">লগআউট</button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    
+    <!-- বাম পাশ: মূল সিস্টেম -->
+    <main class="main-content">
+      <nav>
+        <button class="tab active" data-page="home">আয়-ব্যয় যোগ</button>
+        <button class="tab" data-page="report">রিপোর্ট</button>
+        <span id="loadingStatus">🔄 লোড হচ্ছে...</span>
+      </nav>
+
+      <!-- HOME PAGE -->
+      <section id="home" class="page active">
+        <div class="card">
+          <h2>হিসাব যোগ করুন</h2>
+
+          <div class="type-switch">
+            <button id="incomeMode" class="active-income" type="button">➕ আয় যোগ করুন</button>
+            <button id="expenseMode" type="button">➖ সাধারণ ব্যয় (দোকান)</button>
+          </div>
+
+          <form id="transactionForm">
+            <div class="grid">
+              <div>
+                <label>তারিখ ও সময়</label>
+                <input type="datetime-local" id="date" required>
+                <span id="bnDatePreview" class="bn-preview"></span>
+              </div>
+
+              <div id="staffBlock">
+                <label id="staffLabel">স্টাফ (কাজ করেছেন)</label>
+                <select id="staff"></select>
+              </div>
+
+              <div>
+                <label id="typeLabel">আয়ের ধরন</label>
+                <select id="transactionType" required></select>
+              </div>
+
+              <div id="incomeAmountBlock">
+                <label id="amountLabel">কাজের মোট বিল (আয়)</label>
+                <input type="number" id="amount" min="0" step="0.01" placeholder="যেমন: 500" required>
+              </div>
+
+              <div id="jobCostBlock">
+                <label>কাজের খরচ (যদি থাকে)</label>
+                <input type="number" id="jobCost" min="0" step="0.01" placeholder="যেমন: 100">
+              </div>
+
+              <div class="full">
+                <label>বিবরণ / কাজের নাম</label>
+                <textarea id="details" placeholder="প্রয়োজনে কাজ বা লেনদেনের বিবরণ লিখুন"></textarea>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn-primary" type="submit" id="saveBtn">আয় সংরক্ষণ করুন</button>
+              <button class="btn-light" type="reset">ফর্ম পরিষ্কার</button>
+            </div>
+          </form>
         </div>
+      </section>
 
-        <form id="transactionForm">
-          <div class="grid">
+      <!-- REPORT PAGE -->
+      <section id="report" class="page">
+        <div class="card">
+          <h2>আয়-ব্যয় ফিল্টার ও রিপোর্ট</h2>
+
+          <div class="grid-4">
             <div>
-              <label>তারিখ ও সময়</label>
-              <input type="datetime-local" id="date" required>
-              <span id="bnDatePreview" class="bn-preview"></span>
+              <label>শুরু তারিখ</label>
+              <input type="date" id="fromDate">
             </div>
-
-            <div id="staffBlock">
-              <label id="staffLabel">স্টাফ (কাজ করেছেন)</label>
-              <select id="staff"></select>
-            </div>
-
             <div>
-              <label id="typeLabel">আয়ের ধরন</label>
-              <select id="transactionType" required></select>
+              <label>শেষ তারিখ</label>
+              <input type="date" id="toDate">
             </div>
-
-            <div id="incomeAmountBlock">
-              <label id="amountLabel">কাজের মোট বিল (আয়)</label>
-              <input type="number" id="amount" min="0" step="0.01" placeholder="যেমন: 500" required>
+            <div>
+              <label>ফিল্টার: স্টাফ</label>
+              <select id="filterStaff">
+                <option value="">সকল স্টাফ</option>
+              </select>
             </div>
-
-            <div id="jobCostBlock">
-              <label>কাজের খরচ (যদি থাকে)</label>
-              <input type="number" id="jobCost" min="0" step="0.01" placeholder="যেমন: 100">
-            </div>
-
-            <div class="full">
-              <label>বিবরণ / কাজের নাম</label>
-              <textarea id="details" placeholder="প্রয়োজনে কাজ বা লেনদেনের বিবরণ লিখুন"></textarea>
+            <div>
+              <label>ফিল্টার: ধরন/খাত</label>
+              <select id="filterType">
+                <option value="">সকল খাত/ধরন</option>
+              </select>
             </div>
           </div>
 
           <div class="actions">
-            <button class="btn-primary" type="submit" id="saveBtn">আয় সংরক্ষণ করুন</button>
-            <button class="btn-light" type="reset">ফর্ম পরিষ্কার</button>
+            <button class="btn-primary" id="showReport">রিপোর্ট দেখুন</button>
+            <button class="btn-success" id="downloadCsv">CSV ডাউনলোড</button>
           </div>
-        </form>
-      </div>
-    </section>
 
-    <!-- REPORT PAGE -->
-    <section id="report" class="page">
-      <div class="card">
-        <h2>আয়-ব্যয় ফিল্টার ও রিপোর্ট</h2>
+          <div class="report-summary">
+            <div class="summary-box income-bg">
+              <small>মোট নিট আয়</small>
+              <strong id="totalIncome">৳ 0</strong>
+            </div>
+            <div class="summary-box expense-bg">
+              <small>মোট ব্যয়</small>
+              <strong id="totalExpense">৳ 0</strong>
+            </div>
+            <div class="summary-box balance-bg">
+              <small>অবশিষ্ট লাভ</small>
+              <strong id="totalBalance">৳ 0</strong>
+            </div>
+          </div>
 
-        <div class="grid-4">
-          <div>
-            <label>শুরু তারিখ</label>
-            <input type="date" id="fromDate">
-          </div>
-          <div>
-            <label>শেষ তারিখ</label>
-            <input type="date" id="toDate">
-          </div>
-          <div>
-            <label>ফিল্টার: স্টাফ</label>
-            <select id="filterStaff">
-              <option value="">সকল স্টাফ</option>
-            </select>
-          </div>
-          <div>
-            <label>ফিল্টার: ধরন/খাত</label>
-            <select id="filterType">
-              <option value="">সকল খাত/ধরন</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn-primary" id="showReport">রিপোর্ট দেখুন</button>
-          <button class="btn-success" id="downloadCsv">CSV ডাউনলোড</button>
-        </div>
-
-        <div class="report-summary">
-          <div class="summary-box income-bg">
-            <small>মোট নিট আয়</small>
-            <strong id="totalIncome">৳ 0</strong>
-          </div>
-          <div class="summary-box expense-bg">
-            <small>মোট ব্যয়</small>
-            <strong id="totalExpense">৳ 0</strong>
-          </div>
-          <div class="summary-box balance-bg">
-            <small>অবশিষ্ট লাভ</small>
-            <strong id="totalBalance">৳ 0</strong>
+          <div class="breakdown-grid">
+            <div class="breakdown-card">
+              <h4>👤 স্টাফের চূড়ান্ত নিট আয়</h4>
+              <ul id="staffBreakdown" class="breakdown-list">
+                <li><span>কোনো তথ্য নেই</span></li>
+              </ul>
+            </div>
+            <div class="breakdown-card">
+              <h4>💸 খাত অনুযায়ী ব্যয়</h4>
+              <ul id="expenseBreakdown" class="breakdown-list">
+                <li><span>কোনো তথ্য নেই</span></li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div class="breakdown-grid">
-          <div class="breakdown-card">
-            <h4>👤 স্টাফের চূড়ান্ত নিট আয়</h4>
-            <ul id="staffBreakdown" class="breakdown-list">
-              <li><span>কোনো তথ্য নেই</span></li>
-            </ul>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>তারিখ ও সময়</th>
+                  <th>ধরন</th>
+                  <th>স্টাফ</th>
+                  <th>ক্যাটাগরি</th>
+                  <th>বিবরণ</th>
+                  <th>বিল/খরচ</th>
+                  <th>নিট পরিমাণ</th>
+                  <th>অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="reportBody"></tbody>
+            </table>
           </div>
-          <div class="breakdown-card">
-            <h4>💸 খাত অনুযায়ী ব্যয়</h4>
-            <ul id="expenseBreakdown" class="breakdown-list">
-              <li><span>কোনো তথ্য নেই</span></li>
-            </ul>
-          </div>
         </div>
-      </div>
+      </section>
+    </main>
 
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>তারিখ ও সময়</th>
-                <th>ধরন</th>
-                <th>স্টাফ</th>
-                <th>ক্যাটাগরি</th>
-                <th>বিবরণ</th>
-                <th>বিল/খরচ</th>
-                <th>নিট পরিমাণ</th>
-                <th>অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody id="reportBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ডান পাশ: ক্যালকুলেটর এবং ক্যাশ মেমো -->
-  <aside class="sidebar-tools">
-    
-    <!-- WINDOWS CALCULATOR -->
-    <div class="card">
-      <div class="win-calc">
-        <div class="win-calc-header">
-          <span>☰</span> Standard Calculator
-        </div>
-        <div class="win-calc-display">
-          <div id="winCalcHistory" class="win-calc-history"></div>
-          <div id="winCalcDisplay" class="win-calc-main">0</div>
-        </div>
-        <div class="win-calc-memory">
-          <button disabled>MC</button>
-          <button disabled>MR</button>
-          <button disabled>M+</button>
-          <button disabled>M-</button>
-          <button disabled>MS</button>
-          <button disabled>M▾</button>
-        </div>
-        <div class="win-calc-grid">
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('%')">%</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcClearEntry()">CE</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcClear()">C</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcBackspace()">⌫</button>
-
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('1/x')">1/x</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqr')">x²</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqrt')">√x</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('/')">÷</button>
-
-          <button class="win-calc-btn" onclick="winCalcNum('7')">7</button>
-          <button class="win-calc-btn" onclick="winCalcNum('8')">8</button>
-          <button class="win-calc-btn" onclick="winCalcNum('9')">9</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('*')">×</button>
-
-          <button class="win-calc-btn" onclick="winCalcNum('4')">4</button>
-          <button class="win-calc-btn" onclick="winCalcNum('5')">5</button>
-          <button class="win-calc-btn" onclick="winCalcNum('6')">6</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('-')">-</button>
-
-          <button class="win-calc-btn" onclick="winCalcNum('1')">1</button>
-          <button class="win-calc-btn" onclick="winCalcNum('2')">2</button>
-          <button class="win-calc-btn" onclick="winCalcNum('3')">3</button>
-          <button class="win-calc-btn op-btn" onclick="winCalcOp('+')">+</button>
-
-          <button class="win-calc-btn op-btn" onclick="winCalcSpecial('+/-')">+/-</button>
-          <button class="win-calc-btn" onclick="winCalcNum('0')">0</button>
-          <button class="win-calc-btn" onclick="winCalcNum('.')">.</button>
-          <button class="win-calc-btn eq-btn" onclick="winCalcEquals()">=</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- CASH MEMO GENERATOR FORM -->
-    <div class="card">
-      <h3>🧾 ক্যাশ মেমো জেনারেটর</h3>
-      <div style="display:grid; gap:8px; margin-bottom:10px;">
-        <input type="text" id="custMemoNo" placeholder="মেমো নম্বর (যেমন: 153)">
-        <input type="text" id="custName" placeholder="গ্রাহকের নাম">
-        <input type="text" id="custAddress" placeholder="ঠিকানা">
-        <input type="date" id="custDate">
-      </div>
+    <!-- ডান পাশ: ক্যালকুলেটর এবং ক্যাশ মেমো -->
+    <aside class="sidebar-tools">
       
-      <div id="memoItemsContainer">
-        <div class="memo-item-row">
-          <input type="text" placeholder="কাজের বিবরণ" class="m-desc">
-          <input type="number" placeholder="পরিমাণ" class="m-qty" value="1" oninput="updateMemoTotal()">
-          <input type="number" placeholder="দর" class="m-price" value="0" oninput="updateMemoTotal()">
-          <button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.remove(); updateMemoTotal();">✕</button>
+      <!-- WINDOWS CALCULATOR -->
+      <div class="card">
+        <div class="win-calc">
+          <div class="win-calc-header">
+            <span>☰</span> Standard Calculator
+          </div>
+          <div class="win-calc-display">
+            <div id="winCalcHistory" class="win-calc-history"></div>
+            <div id="winCalcDisplay" class="win-calc-main">0</div>
+          </div>
+          <div class="win-calc-memory">
+            <button disabled>MC</button>
+            <button disabled>MR</button>
+            <button disabled>M+</button>
+            <button disabled>M-</button>
+            <button disabled>MS</button>
+            <button disabled>M▾</button>
+          </div>
+          <div class="win-calc-grid">
+            <button class="win-calc-btn op-btn" onclick="winCalcOp('%')">%</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcClearEntry()">CE</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcClear()">C</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcBackspace()">⌫</button>
+
+            <button class="win-calc-btn op-btn" onclick="winCalcSpecial('1/x')">1/x</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqr')">x²</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcSpecial('sqrt')">√x</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcOp('/')">÷</button>
+
+            <button class="win-calc-btn" onclick="winCalcNum('7')">7</button>
+            <button class="win-calc-btn" onclick="winCalcNum('8')">8</button>
+            <button class="win-calc-btn" onclick="winCalcNum('9')">9</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcOp('*')">×</button>
+
+            <button class="win-calc-btn" onclick="winCalcNum('4')">4</button>
+            <button class="win-calc-btn" onclick="winCalcNum('5')">5</button>
+            <button class="win-calc-btn" onclick="winCalcNum('6')">6</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcOp('-')">-</button>
+
+            <button class="win-calc-btn" onclick="winCalcNum('1')">1</button>
+            <button class="win-calc-btn" onclick="winCalcNum('2')">2</button>
+            <button class="win-calc-btn" onclick="winCalcNum('3')">3</button>
+            <button class="win-calc-btn op-btn" onclick="winCalcOp('+')">+</button>
+
+            <button class="win-calc-btn op-btn" onclick="winCalcSpecial('+/-')">+/-</button>
+            <button class="win-calc-btn" onclick="winCalcNum('0')">0</button>
+            <button class="win-calc-btn" onclick="winCalcNum('.')">.</button>
+            <button class="win-calc-btn eq-btn" onclick="winCalcEquals()">=</button>
+          </div>
         </div>
       </div>
 
-      <button class="btn-light" style="width:100%; margin-top:6px;" onclick="addMemoItem()">+ আইটেম যোগ করুন</button>
-
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
-        <div>
-          <label style="font-size:12px">জমা (টাকা):</label>
-          <input type="number" id="memoPaid" value="0" oninput="updateMemoTotal()">
+      <!-- CASH MEMO GENERATOR FORM -->
+      <div class="card">
+        <h3>🧾 ক্যাশ মেমো জেনারেটর</h3>
+        <div style="display:grid; gap:8px; margin-bottom:10px;">
+          <input type="text" id="custMemoNo" placeholder="মেমো নম্বর (যেমন: 153)">
+          <input type="text" id="custName" placeholder="গ্রাহকের নাম">
+          <input type="text" id="custAddress" placeholder="ঠিকানা">
+          <input type="date" id="custDate">
         </div>
-        <div>
-          <label style="font-size:12px">বাকি (টাকা):</label>
-          <input type="number" id="memoDue" value="0" readonly>
+        
+        <div id="memoItemsContainer">
+          <div class="memo-item-row">
+            <input type="text" placeholder="কাজের বিবরণ" class="m-desc">
+            <input type="number" placeholder="পরিমাণ" class="m-qty" value="1" oninput="updateMemoTotal()">
+            <input type="number" placeholder="দর" class="m-price" value="0" oninput="updateMemoTotal()">
+            <button class="btn-danger" style="padding:4px 8px;" onclick="this.parentElement.remove(); updateMemoTotal();">✕</button>
+          </div>
+        </div>
+
+        <button class="btn-light" style="width:100%; margin-top:6px;" onclick="addMemoItem()">+ আইটেম যোগ করুন</button>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+          <div>
+            <label style="font-size:12px">জমা (টাকা):</label>
+            <input type="number" id="memoPaid" value="0" oninput="updateMemoTotal()">
+          </div>
+          <div>
+            <label style="font-size:12px">বাকি (টাকা):</label>
+            <input type="number" id="memoDue" value="0" readonly>
+          </div>
+        </div>
+
+        <div class="memo-total-bar">
+          <span>মোট বিল:</span>
+          <span id="memoTotalText">৳ 0</span>
+        </div>
+
+        <div class="actions" style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button class="btn-primary" onclick="generateAndPrintMemo()">🖨 প্রিন্ট করুন</button>
+          <button class="btn-success" onclick="downloadMemoImage()">🖼 ফটো ডাউনলোড</button>
         </div>
       </div>
 
-      <div class="memo-total-bar">
-        <span>মোট বিল:</span>
-        <span id="memoTotalText">৳ 0</span>
-      </div>
+    </aside>
 
-      <div class="actions" style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <button class="btn-primary" onclick="generateAndPrintMemo()">🖨️️ প্রিন্ট করুন</button>
-        <button class="btn-success" onclick="downloadMemoImage()">🖼️️ ফটো ডাউনলোড</button>
-      </div>
-    </div>
+  </div>
 
-  </aside>
+  <footer>Developed by @NAZMULSBLOG</footer>
 
 </div>
 
@@ -682,11 +827,10 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
   <div class="memo-card-printable" id="memoPrintArea">
     
     <div>
-      <!-- ১. বিসমিল্লাহ (সবার উপরে মাঝখানে) -->
       <div class="bismillah-top" id="mBismillah">বিসমিল্লাহির রহমানির রহীম</div>
 
       <div class="memo-header-top">
-        <div><span id="mProp">প্রোপ্রাইটারঃ মোঃ কামরুল হাসান</span></div>
+        <div><span id="mProp">প্রোঃ মোঃ কামরুল হাসান</span></div>
         <div style="text-align:right;">
           <div id="mPhone1">📱 01712-764142</div>
         </div>
@@ -696,8 +840,8 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
 
       <div class="shop-title-main" id="mShopName">এফ.এন.এফ কম্পিউটার এন্ড অনলাইন সার্ভিসেস</div>
       <div class="shop-sub-details" id="mSubDetails">
-        অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি<br>
-        ইমেইলঃ <span id="mEmail">fnf.barisal@gmail.com</span> | মোবাইলঃ <span id="mPhone2">01533-199800(দোকান)</span>
+        অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি সকল কাজ করা হয়।<br>
+        Email: <span id="mEmail">fnf.barisal@gmail.com</span> | Shop: <span id="mPhone2">01533-199800(দোকান)</span>
       </div>
 
       <div class="shop-address-badge">
@@ -715,8 +859,8 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
       </div>
 
       <div style="font-size:12px; font-weight:bold; margin-bottom:8px; line-height: 1.5;">
-        নামঃ <span id="pCustName" class="memo-dots"></span><br>
-        ঠিকানাঃ <span id="pCustAddress" class="memo-dots" style="min-width:250px;"></span>
+        নাম ঃ <span id="pCustName" class="memo-dots"></span><br>
+        ঠিকানা ঃ <span id="pCustAddress" class="memo-dots" style="min-width:250px;"></span>
       </div>
 
       <!-- মেমো টেবিল -->
@@ -735,7 +879,7 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
         <tfoot>
           <tr>
             <td colspan="3" rowspan="3" style="vertical-align: top; font-weight: bold; font-size: 11px;">
-              কথায়ঃ <span id="pInWords"></span>
+              কথায় ঃ <span id="pInWords"></span>
             </td>
             <td style="font-weight: bold; text-align: right; background:#f0f4f8;">মোট =</td>
             <td id="pTotal" style="font-weight: bold; text-align: right;">0</td>
@@ -760,20 +904,78 @@ footer{text-align:center;color:#64748b;font-size:13px;padding:20px 5px}
   </div>
 </div>
 
-<footer>Developed by @NAZMULSBLOG</footer>
-
 <script>
 /* ==========================================================
-   ০. ক্যাশ মেমো তথ্য পরিবর্তন করার কনফিগারেশন (EDIT HERE)
+   ০. AUTHENTICATION (ইউজার ও পাসওয়ার্ড কনফিগারেশন)
+   ========================================================== */
+const USERS = {
+  "কামরুল": "kamrul123",
+  "নাজমুল": "nazmul123",
+  "সিফাত": "sifat123",
+  "আল-আমিন": "alamin123",
+  "মাহিন": "mahin123"
+};
+
+let currentUser = null;
+
+// লগইন হ্যান্ডলার
+document.getElementById("loginForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const selectedUser = document.getElementById("loginUser").value;
+  const enteredPass = document.getElementById("loginPass").value;
+
+  if (USERS[selectedUser] && USERS[selectedUser] === enteredPass) {
+    currentUser = selectedUser;
+    localStorage.setItem("fnf_logged_user", selectedUser);
+    initLoggedInUser();
+  } else {
+    document.getElementById("loginError").style.display = "block";
+  }
+});
+
+// লগইন সফল হলে ড্যাশবোর্ড দেখানো
+function initLoggedInUser() {
+  document.getElementById("loginOverlay").style.display = "none";
+  document.getElementById("mainApp").style.display = "block";
+  document.getElementById("loggedInUserText").textContent = currentUser;
+  document.getElementById("loginError").style.display = "none";
+  
+  // স্বয়ংক্রিয়ভাবে ইনপুট ফর্মের "স্টাফ" সিলেক্ট করে দেওয়া
+  const staffSelect = document.getElementById("staff");
+  if(staffSelect) staffSelect.value = currentUser;
+  
+  fetchTransactionsFromDB();
+}
+
+// লগআউট হ্যান্ডলার
+function logout() {
+  localStorage.removeItem("fnf_logged_user");
+  currentUser = null;
+  document.getElementById("mainApp").style.display = "none";
+  document.getElementById("loginOverlay").style.display = "flex";
+  document.getElementById("loginPass").value = "";
+}
+
+// পেজ লোডে চেক করা ব্যবহারকারী আগেই লগইন করা আছে কিনা
+window.addEventListener("DOMContentLoaded", () => {
+  const savedUser = localStorage.getItem("fnf_logged_user");
+  if (savedUser && USERS[savedUser]) {
+    currentUser = savedUser;
+    initLoggedInUser();
+  }
+});
+
+/* ==========================================================
+   ১. ক্যাশ মেমো তথ্য কনফিগারেশন
    ========================================================== */
 const MEMO_CONFIG = {
   bismillah: "বিসমিল্লাহির রহমানির রহীম",
   shopName: "এফ.এন.এফ কম্পিউটার এন্ড অনলাইন সার্ভিসেস",
-  proprietor: "প্রোপ্রাইটারঃ মোঃ কামরুল হাসান",
+  proprietor: "প্রোঃ মোঃ কামরুল হাসান",
   phone1: "01712-764142",
   phone2: "01533-199800(দোকান)",
   email: "fnf.barisal@gmail.com",
-  services: "অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি",
+  services: "অনলাইনের সকল প্রকার কাজ, ফটোকপি, লেমিনেটিং, ছবি থেকে ছবি, ই-টিন/রিটার্ন, চাকুরি/ভর্তি আবেদন ইত্যাদি সকল কাজ করা হয়।",
   address: "শহীদ নজরুল ইসলাম সড়ক, বাংলাবাজার, বরিশাল।"
 };
 
@@ -792,7 +994,7 @@ function applyMemoConfig() {
 }
 
 /* ==========================================================
-   ১. SUPABASE কনফিগারেশন
+   ২. SUPABASE কনফিগারেশন
    ========================================================== */
 const SUPABASE_URL = "https://fonlynkpqsmtvuepcjfk.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvbmx5bmtwcXNtdHZ1ZXBjamZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTU0MDQsImV4cCI6MjEwNjU5MTQwNH0.1VFzKfXkqN0t3ykI1B_64gjPxBWafMl4_OcsKW6f-zA";
@@ -1044,7 +1246,7 @@ function downloadCSV(){
 }
 
 /* ==========================================================
-   ২. WINDOWS CALCULATOR LOGIC
+   ৩. WINDOWS CALCULATOR LOGIC
    ========================================================== */
 let winCurrent = "0";
 let winPrev = "";
@@ -1132,7 +1334,7 @@ function winCalcSpecial(type) {
 }
 
 /* ==========================================================
-   ৩. CASH MEMO GENERATOR & PRINT / PHOTO LOGIC
+   ৪. CASH MEMO GENERATOR LOGIC
    ========================================================== */
 function addMemoItem() {
   const container = $("memoItemsContainer");
@@ -1257,7 +1459,7 @@ function downloadMemoImage() {
 }
 
 /* ==========================================================
-   ৪. EVENT LISTENERS & INIT
+   ৫. EVENT LISTENERS & INIT
    ========================================================== */
 $("incomeMode").addEventListener("click", () => setMode("income"));
 $("expenseMode").addEventListener("click", () => setMode("expense"));
@@ -1291,6 +1493,7 @@ $("transactionForm").addEventListener("submit", async function(e) {
     $("date").value = currentDateTimeLocal();
     updateBnDatePreview();
     setMode(mode);
+    if(currentUser) $("staff").value = currentUser;
     await fetchTransactionsFromDB();
   }
 });
@@ -1300,6 +1503,7 @@ $("transactionForm").addEventListener("reset", () => {
     $("date").value = currentDateTimeLocal();
     updateBnDatePreview();
     setMode(mode);
+    if(currentUser) $("staff").value = currentUser;
   }, 0);
 });
 
@@ -1325,7 +1529,6 @@ $("toDate").value = today();
 applyMemoConfig();
 setMode("income");
 loadDropdowns();
-fetchTransactionsFromDB();
 </script>
 </body>
 </html>
